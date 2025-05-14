@@ -7,10 +7,10 @@ plugins {
 
 android {
 
-    ndkVersion = "29.0.13113456"
+    ndkVersion = "27.2.12479018"
     namespace = "com.example.namibia_hockey_union.flutter_apps"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
