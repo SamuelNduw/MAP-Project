@@ -6,7 +6,7 @@ A mobile application project. This application allows for teams and members to v
 
 - Flutter
 - Django Rest Framework
-- Postgresql
+- MySQL
 
 # Usage Instructions
 
@@ -14,7 +14,7 @@ A mobile application project. This application allows for teams and members to v
 #### Once complete, login with the superuser/admin credentials, then populate the application with data using the various creation pages.
 
 ## Database
-Create a database using the following script (preferrably in PgAdmin): \
+Create a database using the following script (preferrably in MySQL Workbench): \
 `CREATE DATABASE hockeyunion`
 
 ## Backend
@@ -44,7 +44,6 @@ python -m venv virt
 - Change the values in the `.env` file to your configurations
 
 ### Make Migrations
-**Ensure your database server is running! (Can be done in PgAdmin)**
 #### Navigate to `Backend/hockeyapp/` then execute the commands
 ```
 cd hockeyapp
