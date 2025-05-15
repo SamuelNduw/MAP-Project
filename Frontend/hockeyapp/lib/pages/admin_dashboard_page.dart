@@ -1,96 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hockeyapp/pages/login_page.dart';
+import 'package:hockeyapp/pages/public_home_page.dart';
+import 'league_list_page.dart';
+import 'team_list_page.dart';
+// Import any other admin tab pages here
 
-class AdminDashboardPage extends StatelessWidget {
+class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
-  Widget _buildTile(BuildContext context, String title, String route) {
+  
+
+  @override
+  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+}
+
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  int _currentIndex = 0;
+
+  final List<Widget> _pages = const [
+    DashboardTab(),
+    LeagueListPage(),
+    TeamListPage(),
+    AdminProfileTab(),
+  ];
+
+  final List<BottomNavigationBarItem> _navItems = const [
+    BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
+    BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Leagues'),
+    BottomNavigationBarItem(icon: Icon(Icons.groups), label: 'Teams'),
+    BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Profile'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        items: _navItems,
+        onTap: (i) => setState(() => _currentIndex = i),
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+      ),
+    );
+  }
+}
+
+/// Placeholder for Dashboard Overview
+class DashboardTab extends StatelessWidget {
+  const DashboardTab({super.key});
+
+  Widget _buildTile(BuildContext context, String title, String route){
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: InkWell(
         onTap: () => Navigator.pushNamed(context, route),
         borderRadius: BorderRadius.circular(8),
-        child: Center(child: Text(title, style: const TextStyle(fontSize: 16))),
-      ),
-    );
-  }
-
-  Widget _drawerItem(String text, {IconData? trailing, VoidCallback? onTap}) {
-    return ListTile(
-      title: Text(text, style: const TextStyle(color: Colors.white)),
-      trailing: trailing != null ? Icon(trailing, color: Colors.white) : null,
-      onTap: onTap,
-    );
+        child: Center(
+            child: Text(title, style: const TextStyle(fontSize: 16)),
+          )
+        )
+      );
   }
 
   @override
   Widget build(BuildContext context) {
-    const blue = Colors.blue; // use your app’s blue
     return Scaffold(
-      // RIGHT‐SIDE DRAWER
-      endDrawer: Drawer(
-        child: Container(
-          color: blue,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              DrawerHeader(
-                child: Center(
-                  child: Image.asset('images/logo.png', width: 120),
-                ),
-              ),
-              _drawerItem('Dashboard', onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacementNamed(context, '/admin');
-              }),
-              _drawerItem('Leagues', trailing: Icons.chevron_right, onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/admin/leagues');
-              }),
-              _drawerItem('Teams', trailing: Icons.chevron_right, onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/admin/teams');
-              }),
-              _drawerItem('Players', trailing: Icons.chevron_right, onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/admin/players');
-              }),
-              _drawerItem('Managers', trailing: Icons.chevron_right, onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/admin/managers');
-              }),
-              _drawerItem('Staff', trailing: Icons.chevron_right, onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/admin/staff');
-              }),
-              _drawerItem('Fixtures', trailing: Icons.chevron_right, onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/admin/fixtures');
-              }),
-            ],
-          ),
-        ),
-      ),
-
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        toolbarHeight: 80,
+        title: Text('Admin Dashboard'),
         leading: Padding(
           padding: const EdgeInsets.only(left: 16),
-          child: Image.asset('images/logo.png', width: 80, height: 80, fit: BoxFit.contain),
-        ),
-        actions: [
-          Builder(
-            builder: (ctx) => IconButton(
-              icon: const Icon(Icons.menu, color: Colors.black),
-              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
-            ),
-          ),
-          const SizedBox(width: 16),
-        ],
+          child: Image.asset('images/logo.png', width: 80, height: 80, fit: BoxFit.contain),  
+        )
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: GridView.count(
@@ -105,7 +90,44 @@ class AdminDashboardPage extends StatelessWidget {
             _buildTile(context, 'Staff', '/admin/staff'),
             _buildTile(context, 'Fixtures', '/admin/fixtures'),
           ],
-        ),
+        )
+        )
+    );
+  }
+}
+
+/// Placeholder for Admin Profile/Settings
+class AdminProfileTab extends StatelessWidget {
+  const AdminProfileTab({super.key});
+
+  Future<void> _handleLogout(BuildContext context) async {
+    const storage = FlutterSecureStorage();
+    await storage.delete(key: 'accessToken');
+    await storage.delete(key: 'refreshToken');
+
+    // Push PublicHomePage and clear the navigation stack
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Admin Profile'),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Image.asset('images/logo.png', width: 80, height: 80, fit: BoxFit.contain),  
+        )
+      ),
+      body: Center(
+        child: ElevatedButton.icon(
+          icon: const Icon(Icons.logout),
+          label: const Text('Logout'),
+          onPressed: () => _handleLogout(context),
+        )
       ),
     );
   }

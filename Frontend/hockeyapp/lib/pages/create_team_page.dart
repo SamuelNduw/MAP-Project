@@ -43,7 +43,6 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
         shortName: _shortCtrl.text.trim(),
         logoUrl: _logoCtrl.text.trim(),
         foundedYear: int.parse(_yearCtrl.text.trim()),
-        leagueId: int.parse(_selectedLeagueId!),
       );
       if (!mounted) return;
       // Navigator.pop(context, true);

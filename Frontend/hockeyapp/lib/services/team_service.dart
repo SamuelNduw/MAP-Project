@@ -5,14 +5,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class Team {
   final int id;
   final String name, shortName, logoUrl; 
-  final int foundedYear, leagueId;
+  final int foundedYear;
   Team({
     required this.id,
     required this.name,
     required this.shortName,
     required this.logoUrl,
     required this.foundedYear,
-    required this.leagueId,
   });
   factory Team.fromJson(Map<String, dynamic> j) => Team(
     id: j['id'],
@@ -20,7 +19,6 @@ class Team {
     shortName: j['short_name'],
     logoUrl: j['logo_url'] ?? '',
     foundedYear: j['founded_year'],
-    leagueId: j['league_id'],
   );
 }
 
@@ -40,7 +38,6 @@ class TeamService {
     required String shortName,
     required String logoUrl,
     required int foundedYear,
-    required int leagueId,
   }) async {
     await _attachToken();
     final resp = await _dio.post('teams/', data: {
@@ -48,7 +45,6 @@ class TeamService {
       'short_name': shortName,
       'logo_url': logoUrl,
       'founded_year': foundedYear,
-      'league_id': leagueId,
     });
     return Team.fromJson(resp.data);
   }

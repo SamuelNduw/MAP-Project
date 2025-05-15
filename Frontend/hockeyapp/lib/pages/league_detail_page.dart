@@ -35,7 +35,7 @@ class _LeagueDetailPageState extends State<LeagueDetailPage> {
       : Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Name: ${_league!.name}', style: const TextStyle(fontSize: 18)),
+            Text(_league!.name, style: const TextStyle(fontSize: 18)),
             Text('Season: ${_league!.season}'),
             Text('Start: ${_league!.startDate}'),
             Text('End: ${_league!.endDate}'),

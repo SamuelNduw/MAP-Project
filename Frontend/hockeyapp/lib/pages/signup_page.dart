@@ -1,6 +1,7 @@
 // lib/pages/signup_page.dart
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'public_home_page.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -20,20 +21,24 @@ class _SignupPageState extends State<SignupPage> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      await AuthService().register(
+      final role = await AuthService().register(
         _nameCtrl.text.trim(),
         _emailCtrl.text.trim(),
         _passCtrl.text.trim(),
       );
       if (!context.mounted) return;
       // After signup, go back to login:
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful. Please log in.')),
-      );
+      if (role == 'ADMIN') {
+        Navigator.pushReplacementNamed(context, '/admin');
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PublicHomePage()),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text('Sign Up failed: ${e.toString()}')),
       );
     } finally {
       setState(() => _isLoading = false);

@@ -63,6 +63,7 @@ class League(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     status = models.CharField(max_length=10, choices=Status.choices, default= Status.SCHEDULED)
+    teams = models.ManyToManyField('Team', through='LeagueTeam', related_name='leagues')
 
     def __str__(self):
         return f"{self.name} {self.season}"
@@ -72,10 +73,20 @@ class Team(models.Model):
     short_name = models.CharField(max_length=10)
     logo_url = models.URLField(blank=True)
     founded_year = models.IntegerField()
-    league_id = models.ForeignKey(League, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
+    
+class LeagueTeam(models.Model):
+    league = models.ForeignKey(League, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    date_joined = models.DateField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('league', 'team')
+
+    def __str__(self):
+        return f"{self.team} in {self.league}"
 
 class Manager(models.Model):
     first_name = models.CharField(max_length=100)

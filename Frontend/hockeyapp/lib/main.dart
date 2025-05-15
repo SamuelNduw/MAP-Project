@@ -10,6 +10,7 @@ import 'pages/admin_dashboard_page.dart';
 import 'pages/league_list_page.dart';
 import 'pages/create_league_page.dart';
 import 'pages/league_detail_page.dart';
+import 'pages/public_home_page.dart';
 // import your other admin pages (teams, players, etc.)
 
 void main() => runApp(const MyApp());
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'Namibia Hockey Union',
       debugShowCheckedModeBanner: false,
 
-      // Home widget decides initial screen
+      // AuthGate decides initial screen based on token + role
       home: const AuthGate(),
 
       routes: {
@@ -53,7 +54,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// Checks stored token and directs user accordingly.
+/// Checks stored token, decodes role, and routes accordingly.
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
   @override
@@ -62,7 +63,9 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   final _storage = const FlutterSecureStorage();
+
   bool? _isAuthenticated;
+  String? _role;
 
   @override
   void initState() {
@@ -73,27 +76,86 @@ class _AuthGateState extends State<AuthGate> {
   Future<void> _checkToken() async {
     final token = await _storage.read(key: 'accessToken');
     if (token != null && !JwtDecoder.isExpired(token)) {
-      setState(() => _isAuthenticated = true);
+      // Decode JWT and grab the 'role' claim
+      final claims = JwtDecoder.decode(token);
+      setState(() {
+        _isAuthenticated = true;
+        _role = claims['role'] as String?; 
+      });
     } else {
-      // remove stale token
+      // no valid token → clear any stale tokens
       await _storage.delete(key: 'accessToken');
       await _storage.delete(key: 'refreshToken');
-      setState(() => _isAuthenticated = false);
+      setState(() {
+        _isAuthenticated = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // still checking
+    // still loading?
     if (_isAuthenticated == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    // decide where to go
-    return _isAuthenticated!
-      ? const AdminDashboardPage()
-      : const LoginPage();
+    // not logged in → show login
+    if (!_isAuthenticated!) {
+      return const LoginPage();
+    }
+
+    // logged in → branch on role
+    if (_role == 'ADMIN') {
+      return const AdminDashboardPage();
+    } else {
+      return const PublicHomePage();
+    }
   }
 }
+
+// /// Checks stored token and directs user accordingly.
+// class AuthGate extends StatefulWidget {
+//   const AuthGate({super.key});
+//   @override
+//   State<AuthGate> createState() => _AuthGateState();
+// }
+
+// class _AuthGateState extends State<AuthGate> {
+//   final _storage = const FlutterSecureStorage();
+//   bool? _isAuthenticated;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _checkToken();
+//   }
+
+//   Future<void> _checkToken() async {
+//     final token = await _storage.read(key: 'accessToken');
+//     if (token != null && !JwtDecoder.isExpired(token)) {
+//       setState(() => _isAuthenticated = true);
+//     } else {
+//       // remove stale token
+//       await _storage.delete(key: 'accessToken');
+//       await _storage.delete(key: 'refreshToken');
+//       setState(() => _isAuthenticated = false);
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     // still checking
+//     if (_isAuthenticated == null) {
+//       return const Scaffold(
+//         body: Center(child: CircularProgressIndicator()),
+//       );
+//     }
+
+//     // decide where to go
+//     return _isAuthenticated!
+//       ? const AdminDashboardPage()
+//       : const LoginPage();
+//   }
+// }

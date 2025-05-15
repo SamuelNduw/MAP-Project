@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:hockeyapp/pages/public_league_detail.dart';
 import '../services/league_service.dart';
-import 'league_detail_page.dart';
-import 'create_league_page.dart';
 
-class LeagueListPage extends StatefulWidget {
-  const LeagueListPage({super.key});
+class PublicLeagueListPage extends StatefulWidget {
+  const PublicLeagueListPage({super.key});
+
   @override
-  State<LeagueListPage> createState() => _LeagueListPageState();
+  State<PublicLeagueListPage> createState() => _PublicLeagueListPageState();
 }
 
-class _LeagueListPageState extends State<LeagueListPage> {
+class _PublicLeagueListPageState extends State<PublicLeagueListPage> {
   List<League> _leagues = [];
   List<League> _filtered = [];
   bool _loading = true;
@@ -18,15 +18,16 @@ class _LeagueListPageState extends State<LeagueListPage> {
   @override
   void initState() {
     super.initState();
-    _load();
+    _fetch();
     _searchCtrl.addListener(_onSearch);
   }
 
-  Future<void> _load() async {
+  Future<void> _fetch() async {
     try {
-      final list = await LeagueService().listLeagues();
-      setState(() { 
-        _leagues = list; 
+      // hits GET localhost:8000/api/publicleagues/
+      final list = await LeagueService().listPublicLeagues();
+      setState(() {
+        _leagues = list;
         _filtered = list;
       });
     } finally {
@@ -45,25 +46,7 @@ class _LeagueListPageState extends State<LeagueListPage> {
 
   @override
   Widget build(BuildContext c) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Leagues'),
-      leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Image.asset('images/logo.png', width: 80, height: 80, fit: BoxFit.contain),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: () async {
-            final created = await Navigator.push<League>(
-              c,
-              MaterialPageRoute(builder: (_) => const CreateLeaguePage())
-            );
-            if (created != null) _load();
-          },
-        )
-      ],
-    ),
+    appBar: AppBar(title: const Text('Leagues')),
     body: _loading
       ? const Center(child: CircularProgressIndicator())
       : Column(
@@ -89,7 +72,7 @@ class _LeagueListPageState extends State<LeagueListPage> {
                     subtitle: Text(l.season),
                     onTap: () => Navigator.push(
                       ctx,
-                      MaterialPageRoute(builder: (_) => LeagueDetailPage(id: l.id))
+                      MaterialPageRoute(builder: (_) => PublicLeagueDetail(id: l.id))
                     )
                   );
                 },

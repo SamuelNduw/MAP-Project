@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import User, Team, Fixture, League, Player, Manager, Staff
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from .models import User, Team, Fixture, League, Player, Manager, Staff, LeagueTeam
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -19,6 +21,17 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
     
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user: User):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['email'] = user.email
+        token['role'] = user.role
+        token['full_name'] = user.full_name
+
+        return token
 
 class LeagueSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,6 +42,12 @@ class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
         fields = '__all__'
+
+class LeagueTeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LeagueTeam
+        fields = '__all__'
+        read_only_fields = ('date_joined',)
 
 class PlayerSerializer(serializers.ModelSerializer):
     class Meta:

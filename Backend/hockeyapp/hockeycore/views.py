@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import (
     RetrieveModelMixin,
@@ -31,24 +32,27 @@ class RegisterView(APIView):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class LoginView(APIView):
-    def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
+# class LoginView(APIView):
+#     def post(self, request):
+#         email = request.data.get('email')
+#         password = request.data.get('password')
 
-        user = User.objects.filter(email=email).first()
+#         user = User.objects.filter(email=email).first()
 
-        if user is None or not user.check_password(password):
-            return Response(
-                {'error': 'Invalid credentials'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            'email': user.email,
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-        })
+#         if user is None or not user.check_password(password):
+#             return Response(
+#                 {'error': 'Invalid credentials'},
+#                 status=status.HTTP_401_UNAUTHORIZED
+#             )
+#         refresh = RefreshToken.for_user(user)
+#         return Response({
+#             'email': user.email,
+#             'access': str(refresh.access_token),
+#             'refresh': str(refresh),
+#         })
+
+class CustomLoginView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
     
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -113,3 +117,22 @@ class PublicLeagueViewSet(ReadOnlyViewSet):
 class PublicTeamViewSet(ReadOnlyViewSet):
     queryset = Team.objects.all()
     serializer_class = PublicTeamSerializer
+
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdmin])
+class AddTeamToLeagueView(APIView):
+    def post(self, request):
+        serializer = LeagueTeamSerializer(data=request.data)
+        if serializer.is_valid():
+            # Check if the team is already in the league
+            league_id = serializer.validated_data['league'].id
+            team_id = serializer.validated_data['team'].id
+            if LeagueTeam.objects.filter(league_id=league_id, team_id=team_id).exists():
+                return Response(
+                    {'error': 'This team is already in the league'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

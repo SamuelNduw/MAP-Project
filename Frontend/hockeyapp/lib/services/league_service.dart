@@ -24,7 +24,7 @@ class League {
 
 class LeagueService {
   final _storage = const FlutterSecureStorage();
-  final _dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:8000/api/admin/'));
+  final _dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:8000/api/'));
 
   Future<void> _attachToken() async {
     final token = await _storage.read(key: 'accessToken');
@@ -41,7 +41,7 @@ class LeagueService {
     required String status,
   }) async {
     await _attachToken();
-    final resp = await _dio.post('leagues/', data: {
+    final resp = await _dio.post('admin/leagues/', data: {
       'name': name,
       'season': season,
       'start_date': startDate,
@@ -53,7 +53,7 @@ class LeagueService {
 
   Future<List<League>> listLeagues() async {
   await _attachToken();
-  final resp = await _dio.get('leagues/');
+  final resp = await _dio.get('admin/leagues/');
   
   // SAFER: assume response is a List
   final data = resp.data;
@@ -67,7 +67,27 @@ class LeagueService {
 
   Future<League> getLeague(int id) async {
     await _attachToken();
-    final resp = await _dio.get('leagues/$id/');
+    final resp = await _dio.get('admin/leagues/$id/');
     return League.fromJson(resp.data);
   }
+
+  Future<List<League>> listPublicLeagues() async {
+    await _attachToken();
+    final resp = await _dio.get('publicleagues/');
+    
+    // SAFER: assume response is a List
+    final data = resp.data;
+    if (data is List) {
+      return data.map((item) => League.fromJson(item)).toList();
+    } else {
+      throw Exception("Expected a list but got ${data.runtimeType}");
+    }
+  }
+
+  Future<League> getPublicLeague(int id) async {
+    await _attachToken();
+    final resp = await _dio.get('publicleagues/$id/');
+    return League.fromJson(resp.data);
+  }
+
 }

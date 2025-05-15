@@ -1,6 +1,7 @@
 // lib/pages/login_page.dart
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'public_home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,9 +21,21 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
     try {
-      await AuthService().login(_emailCtrl.text.trim(), _passwordCtrl.text.trim());
+      final role = await AuthService().login(
+        _emailCtrl.text.trim(),
+        _passwordCtrl.text.trim(),
+      );
+
       if (!context.mounted) return;
-      Navigator.pushReplacementNamed(context, '/admin');
+
+      if (role == 'ADMIN') {
+        Navigator.pushReplacementNamed(context, '/admin');
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PublicHomePage()),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Login failed: ${e.toString()}')),
@@ -31,6 +44,7 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _isLoading = false);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
