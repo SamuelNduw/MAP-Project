@@ -16,7 +16,7 @@ class _PublicHomePageState extends State<PublicHomePage> {
   final _pages = const [
     MatchesPage(),
     PublicLeagueListPage(),
-    ProfilePage(),
+    PlayerProfilePage(),
   ];
 
   @override

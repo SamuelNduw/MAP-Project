@@ -4,6 +4,7 @@ import 'package:hockeyapp/pages/login_page.dart';
 import 'package:hockeyapp/pages/public_home_page.dart';
 import 'league_list_page.dart';
 import 'team_list_page.dart';
+import 'profile_page.dart';
 // Import any other admin tab pages here
 
 class AdminDashboardPage extends StatefulWidget {
@@ -85,7 +86,7 @@ class DashboardTab extends StatelessWidget {
           children: [
             _buildTile(context, 'Leagues', '/admin/leagues'),
             _buildTile(context, 'Teams', '/admin/teams'),
-            _buildTile(context, 'Players', '/admin/players'),
+            _buildTile(context, 'Players', '/profile_page'),
             _buildTile(context, 'Managers', '/admin/managers'),
             _buildTile(context, 'Staff', '/admin/staff'),
             _buildTile(context, 'Fixtures', '/admin/fixtures'),

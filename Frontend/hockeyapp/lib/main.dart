@@ -11,6 +11,8 @@ import 'pages/league_list_page.dart';
 import 'pages/create_league_page.dart';
 import 'pages/league_detail_page.dart';
 import 'pages/public_home_page.dart';
+import 'pages/profile_page.dart';
+import 'pages/matches_page.dart';
 // import your other admin pages (teams, players, etc.)
 
 void main() => runApp(const MyApp());
@@ -34,6 +36,8 @@ class MyApp extends StatelessWidget {
         '/admin/leagues/create': (_) => const CreateLeaguePage(),
         '/admin/teams': (_) => const TeamListPage(),
         '/admin/teams/create': (_) => const CreateTeamPage(),
+        '/profile_page': (_) => const PlayerProfilePage(),
+        '/fan/matches': (_) => const MatchesPage(),
         // …teams, players, managers, staff, fixtures
       },
       onGenerateRoute: (settings) {
