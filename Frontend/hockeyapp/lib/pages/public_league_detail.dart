@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:hockeyapp/config.dart';
 
 class PublicLeagueDetail extends StatefulWidget {
   final int id;
@@ -15,22 +16,27 @@ class _PublicLeagueDetailState extends State<PublicLeagueDetail> with SingleTick
   Map<String, dynamic>? _league;
   List<Map<String, dynamic>> _teams = [];
 
+  List<Map<String, dynamic>> _fixtures = [];
+  bool _loadingFixtures = true;
+
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _fetchLeagueAndTeams();
+    _fetchFixtures();
   }
 
   Future<void> _fetchLeagueAndTeams() async {
     try {
-      final res = await Dio().get('http://10.0.2.2:8000/api/publicleagues/${widget.id}/');
+      final res = await Dio().get('${apiBaseUrl}publicleagues/${widget.id}/');
       final leagueData = res.data;
 
       List<Map<String, dynamic>> teams = [];
 
       for (var teamId in leagueData['teams']) {
-        final teamRes = await Dio().get('http://10.0.2.2:8000/api/publicteams/$teamId/');
+        final teamRes = await Dio().get('${apiBaseUrl}publicteams/$teamId/');
         teams.add(teamRes.data);
       }
 
@@ -44,6 +50,24 @@ class _PublicLeagueDetailState extends State<PublicLeagueDetail> with SingleTick
       setState(() => _loading = false);
     }
   }
+
+  Future<void> _fetchFixtures() async {
+  try {
+    final res = await Dio().get(
+      '${apiBaseUrl}publicfixtures/',
+      queryParameters: {'league_id': widget.id},
+    );
+
+    setState(() {
+      _fixtures = List<Map<String, dynamic>>.from(res.data);
+      _loadingFixtures = false;
+    });
+  } catch (e) {
+    print('Error loading fixtures: $e');
+    setState(() => _loadingFixtures = false);
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +83,7 @@ class _PublicLeagueDetailState extends State<PublicLeagueDetail> with SingleTick
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
+            Tab(text: 'Standings'),
             Tab(text: 'Fixtures'),
             Tab(text: 'Teams'),
           ],
@@ -67,7 +92,8 @@ class _PublicLeagueDetailState extends State<PublicLeagueDetail> with SingleTick
       body: TabBarView(
         controller: _tabController,
         children: [
-          const Center(child: Text('Fixtures coming soon...')),
+          const Center(child: Text('Standings coming soon...')),
+          _buildFixturesTab(),
           _buildTeamsTab(),
         ],
       ),
@@ -75,7 +101,7 @@ class _PublicLeagueDetailState extends State<PublicLeagueDetail> with SingleTick
   }
 
   Widget _buildTeamsTab() {
-  if (_teams.isEmpty) {
+    if (_teams.isEmpty) {
     return const Center(child: Text('No teams found.'));
   }
 
@@ -131,7 +157,90 @@ class _PublicLeagueDetailState extends State<PublicLeagueDetail> with SingleTick
       },
     ),
   );
+
 }
+
+  Widget _buildFixturesTab() {
+  if (_loadingFixtures) {
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  if (_fixtures.isEmpty) {
+    return const Center(child: Text('No fixtures available.'));
+  }
+
+  return ListView.builder(
+    itemCount: _fixtures.length,
+    itemBuilder: (context, index) {
+      final fx = _fixtures[index];
+
+      final home = fx['home_team']?['short_name'] ?? fx['home_team']?['name'] ?? 'Home';
+      final away = fx['away_team']?['short_name'] ?? fx['away_team']?['name'] ?? 'Away';
+      final homeLogo = fx['home_team']?['logo_url'];
+      final awayLogo = fx['away_team']?['logo_url'];
+
+      final matchScore = fx['score'];
+      final score = (matchScore != null)
+          ? '$matchScore'
+          : 'vs';
+
+      final date = fx['match_datetime'] ?? 'Unknown date';
+      final venue = fx['venue'] ?? 'Unknown venue';
+      final status = fx['status'] ?? 'Unknown status';
+
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              // Row with logos and names
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Home logo
+                  if (homeLogo != null)
+                    Image.network(
+                      homeLogo,
+                      width: 48,
+                      height: 48,
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.broken_image, size: 32),
+                    ),
+                  const SizedBox(width: 8),
+                  Text(home, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  Text(score, style: const TextStyle(fontSize: 16,)),
+                  const SizedBox(width: 8),
+                  Text(away, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  // Away logo
+                  if (awayLogo != null)
+                    Image.network(
+                      awayLogo,
+                      width: 48,
+                      height: 48,
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.broken_image, size: 32),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const SizedBox(height: 4),
+              Text(
+                '$status $date at $venue',
+                style: const TextStyle(color: Colors.blueGrey),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+
+
 
   @override
   void dispose() {

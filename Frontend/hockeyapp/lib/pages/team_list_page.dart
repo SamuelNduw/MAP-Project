@@ -32,6 +32,21 @@ class _TeamListPageState extends State<TeamListPage> {
   Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(
       title: const Text('Teams'),
+      leadingWidth: 140,
+      leading: Row(
+        children: [
+          const BackButton(),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Image.asset(
+              'images/logo.png',
+              width: 60,
+              height: 60,
+              fit: BoxFit.contain,
+            )
+          )
+        ],
+      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.add),

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hockeyapp/config.dart';
 // import 'league_service.dart';
 
 class Team {
@@ -24,7 +25,7 @@ class Team {
 
 class TeamService {
   final _storage = const FlutterSecureStorage();
-  final _dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:8000/api/admin/'));
+  final _dio = Dio(BaseOptions(baseUrl: '${apiBaseUrl}admin/'));
 
   Future<void> _attachToken() async {
     final token = await _storage.read(key: 'accessToken');

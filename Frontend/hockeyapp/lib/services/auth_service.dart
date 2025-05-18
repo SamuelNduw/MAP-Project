@@ -2,13 +2,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import '../config.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
   AuthService._internal();
 
-  final Dio _dio = Dio(BaseOptions(baseUrl: "http://10.0.2.2:8000/api/"));
+  final Dio _dio = Dio(BaseOptions(baseUrl: apiBaseUrl));
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<String> register(String fullName, String email, String password) async {

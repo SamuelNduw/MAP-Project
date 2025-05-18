@@ -117,11 +117,12 @@ class Player(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     dob = models.DateField()
-    position = models.CharField(max_length=2, choices=Position.choices)
-    jersey_no = models.IntegerField()
+    position = models.CharField(max_length=2, choices=Position.choices, blank=True, null=True)
+    jersey_no = models.IntegerField(blank=True, null=True)
     nationality = models.CharField(max_length=100)
-    height_cm = models.IntegerField()
-    weight_kg = models.IntegerField()
+    height_cm = models.IntegerField(blank=True, null=True)
+    weight_kg = models.IntegerField(blank=True, null=True)
+    photo = models.URLField(blank=True, default="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
     team_id = models.ForeignKey(Team, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -139,9 +140,42 @@ class Fixture(models.Model):
     league_id = models.ForeignKey(League, on_delete=models.CASCADE)
     home_team_id = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_fixtures')
     away_team_id = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_fixtures')
+    home_team_score = models.PositiveSmallIntegerField(null=True, blank=True)
+    away_team_score = models.PositiveSmallIntegerField(null=True, blank=True)
+    victor = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='won_fixtures'
+    )
 
     def __str__(self):
         return f"{self.home_team_id} vs {self.away_team_id}"
+
+
+    @property
+    def is_draw(self):
+        return (self.home_team_score is not None and 
+                self.away_team_score is not None and 
+                self.home_team_score == self.away_team_score)
+
+    @property
+    def score_display(self):
+        if self.home_team_score is not None and self.away_team_score is not None:
+            return f"{self.home_team_score}-{self.away_team_score}"
+        return "TBD"
+    
+    def save(self, *args, **kwargs):
+        # Automatically set victor when scores are updated
+        if self.home_team_score is not None and self.away_team_score is not None:
+            if self.home_team_score > self.away_team_score:
+                self.victor = self.home_team_id
+            elif self.home_team_score < self.away_team_score:
+                self.victor = self.away_team_id
+            else:
+                self.victor = None
+        super().save(*args, **kwargs)
 
 class MatchEvent(models.Model):
     class Action(models.TextChoices):

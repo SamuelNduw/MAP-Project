@@ -17,6 +17,8 @@ router.register(r'admin/fixtures', FixtureViewSet)
 # Public read-only endpoints
 router.register(r'publicleagues', PublicLeagueViewSet, basename='publicleagues')
 router.register(r'publicteams', PublicTeamViewSet, basename='publicteams')
+router.register(r'publicfixtures', PublicFixtureViewSet, basename='publicfixtures')
+router.register(r'publicplayers', PublicPlayerViewSet, basename='publicplayers')
 
 
 urlpatterns = [

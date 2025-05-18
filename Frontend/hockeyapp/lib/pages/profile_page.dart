@@ -21,18 +21,40 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile'),
         leading: Padding(
           padding: const EdgeInsets.only(left: 16),
           child: Image.asset('images/logo.png', width: 80, height: 80, fit: BoxFit.contain),  
-        )
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => showDialog(
+              context: context,
+              builder: (BuildContext dialogContext){
+                return AlertDialog(
+                  title: const Text('Confirm Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(), 
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.of(dialogContext).pop();
+                        await _handleLogout(context);
+                      }, 
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                );
+              }
+            ),
+          )
+        ],
       ),
       body: Center(
-        child: ElevatedButton.icon(
-          icon: const Icon(Icons.logout),
-          label: const Text('Logout'),
-          onPressed: () => _handleLogout(context),
-        )
+        child: Text('Profile Page')
       ),
     );
   }

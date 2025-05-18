@@ -15,7 +15,10 @@ from .serializers import *
 from .models import *
 from .permissions import IsAdmin, IsReadOnly
 
-from rest_framework.decorators import authentication_classes, permission_classes
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
+from rest_framework.decorators import authentication_classes, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -32,24 +35,6 @@ class RegisterView(APIView):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# class LoginView(APIView):
-#     def post(self, request):
-#         email = request.data.get('email')
-#         password = request.data.get('password')
-
-#         user = User.objects.filter(email=email).first()
-
-#         if user is None or not user.check_password(password):
-#             return Response(
-#                 {'error': 'Invalid credentials'},
-#                 status=status.HTTP_401_UNAUTHORIZED
-#             )
-#         refresh = RefreshToken.for_user(user)
-#         return Response({
-#             'email': user.email,
-#             'access': str(refresh.access_token),
-#             'refresh': str(refresh),
-#         })
 
 class CustomLoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -88,7 +73,7 @@ class TeamViewSet(AdminOnlyViewSet):
     queryset = Team.objects.all()
     serializer_class = TeamSerializer
 
-class PlayerViewSet(ReadOnlyViewSet):
+class PlayerViewSet(AdminOnlyViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
     permission_classes = [IsAdmin]
@@ -103,10 +88,117 @@ class StaffViewSet(ReadOnlyViewSet):
     serializer_class = StaffSerializer
     permission_classes = [IsAdmin]
 
-class FixtureViewSet(ReadOnlyViewSet):
-    queryset = Fixture.objects.all()
-    serializer_class = FixtureSerializer
-    permission_classes = [IsAdmin]
+class FixtureViewSet(AdminOnlyViewSet):
+    queryset = Fixture.objects.all().select_related(
+        'home_team_id', 'away_team_id', 'league_id', 'victor'
+    )
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = {
+        'league_id': ['exact'],
+        'status': ['exact'],
+        'match_datetime': ['exact', 'gte', 'lte'],
+        'home_team_id': ['exact'],
+        'away_team_id': ['exact'],
+    }
+    search_fields = ['home_team_id__name', 'away_team_id__name', 'venue']
+    ordering_fields = ['match_datetime', 'league_id__name']
+    ordering = ['match_datetime']
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return DetailedFixtureSerializer
+        if self.action == 'retrieve':
+            return DetailedFixtureSerializer
+        if self.action == 'create':
+            return CreateFixtureSerializer
+        if self.action == 'update' or self.action == 'partial_update':
+            return UpdateFixtureSerializer
+        return DetailedFixtureSerializer
+
+    @action(detail=True, methods=['post'])
+    def update_score(self, request, pk=None):
+        fixture = self.get_object()
+        serializer = UpdateFixtureSerializer(fixture, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'])
+    def upcoming(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=Fixture.Status.UPCOMING)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def live(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=Fixture.Status.LIVE)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def finished(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=Fixture.Status.FINISHED)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+# Update the PublicFixtureViewSet in views.py
+class PublicFixtureViewSet(ReadOnlyViewSet):
+    queryset = Fixture.objects.all().select_related(
+        'home_team_id', 'away_team_id', 'league_id', 'victor'
+    ).prefetch_related('matchevent_set')
+    
+    def get_serializer_class(self):
+        # if self.action == 'retrieve':
+            return PublicFixtureDetailSerializer
+        # return PublicFixtureSerializer
+    
+    # Keep all the existing filter and action methods
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = {
+        'league_id': ['exact'],
+        'status': ['exact'],
+        'match_datetime': ['exact', 'gte', 'lte'],
+    }
+    search_fields = ['home_team_id__name', 'away_team_id__name', 'venue']
+    ordering_fields = ['match_datetime']
+    ordering = ['match_datetime']
+
+    @action(detail=False, methods=['get'])
+    def upcoming(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=Fixture.Status.UPCOMING)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def live(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=Fixture.Status.LIVE)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def finished(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=Fixture.Status.FINISHED)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 class PublicLeagueViewSet(ReadOnlyViewSet):
     queryset = League.objects.all()
@@ -117,6 +209,57 @@ class PublicLeagueViewSet(ReadOnlyViewSet):
 class PublicTeamViewSet(ReadOnlyViewSet):
     queryset = Team.objects.all()
     serializer_class = PublicTeamSerializer
+
+class PublicPlayerViewSet(ReadOnlyViewSet):
+    """
+    Public read-only viewset for player data with filtering and search capabilities.
+    """
+    queryset = Player.objects.all().select_related('team_id')
+    serializer_class = PublicPlayerSerializer
+    
+    # Add filtering, searching, and ordering capabilities
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = {
+        'team_id': ['exact'],
+        'position': ['exact'],
+        'jersey_no': ['exact', 'gte', 'lte'],
+    }
+    search_fields = [
+        'first_name',
+        'last_name',
+        'team_id__name',
+        'team_id__short_name',
+        'nationality',
+    ]
+    ordering_fields = [
+        'last_name',
+        'first_name',
+        'jersey_no',
+        'team_id__name',
+    ]
+    ordering = ['last_name']  # Default ordering
+
+    @action(detail=False, methods=['get'])
+    def by_team(self, request):
+        """
+        Custom endpoint to get players grouped by team
+        """
+        team_id = request.query_params.get('team_id')
+        if not team_id:
+            return Response(
+                {'error': 'team_id parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            players = self.get_queryset().filter(team_id=team_id)
+            serializer = self.get_serializer(players, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAdmin])

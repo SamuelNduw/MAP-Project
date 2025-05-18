@@ -91,20 +91,6 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
                         const InputDecoration(labelText: 'Founded Year'),
                     validator: (v) => v!.isEmpty ? 'Required' : null,
                   ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    value: _selectedLeagueId,
-                    decoration: const InputDecoration(labelText: 'League'),
-                    items: _leagues
-                        .map((l) => DropdownMenuItem(
-                              value: l.id.toString(),
-                              child: Text(l.name),
-                            ))
-                        .toList(),
-                    onChanged: (v) => setState(() => _selectedLeagueId = v),
-                    validator: (v) =>
-                        v == null ? 'Please select a league' : null,
-                  ),
                   const SizedBox(height: 16),
                   _loading
                       ? const Center(child: CircularProgressIndicator())

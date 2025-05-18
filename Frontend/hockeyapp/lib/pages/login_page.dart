@@ -50,50 +50,65 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Login")),
-      body: Center(
-        child: Card(
-          margin: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: _emailCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: "Email"),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Email required';
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return 'Invalid email';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _passwordCtrl,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: "Password"),
-                    validator: (value) => value != null && value.length >= 6
-                        ? null
-                        : 'Minimum 6 characters required',
-                  ),
-                  const SizedBox(height: 20),
-                  _isLoading
-                      ? const CircularProgressIndicator()
-                      : ElevatedButton(
-                          onPressed: _handleLogin,
-                          child: const Text("Login"),
-                    ),
-
-                // 2) ADD THE “Create account” LINK RIGHT HERE:
-                TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/register'),
-                  child: const Text('Create account'),
+            padding: const EdgeInsets.only(top: 60), // move elements down from the top
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'images/logo.png',
+                  width: 220,
+                  height: 220,
                 ),
-                ],
-              ),
+                const SizedBox(height: 24),
+                Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextFormField(
+                            controller: _emailCtrl,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(labelText: "Email"),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) return 'Email required';
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return 'Invalid email';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _passwordCtrl,
+                            obscureText: true,
+                            decoration: const InputDecoration(labelText: "Password"),
+                            validator: (value) => value != null && value.length >= 6
+                                ? null
+                                : 'Minimum 6 characters required',
+                          ),
+                          const SizedBox(height: 20),
+                          _isLoading
+                              ? const CircularProgressIndicator()
+                              : ElevatedButton(
+                                  onPressed: _handleLogin,
+                                  child: const Text("Login"),
+                                ),
+                          TextButton(
+                            onPressed: () => Navigator.pushNamed(context, '/register'),
+                            child: const Text('Create account'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

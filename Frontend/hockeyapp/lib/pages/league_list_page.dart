@@ -47,9 +47,20 @@ class _LeagueListPageState extends State<LeagueListPage> {
   Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(
       title: const Text('Leagues'),
-      leading: Padding(
-          padding: const EdgeInsets.only(left: 16),
-          child: Image.asset('images/logo.png', width: 80, height: 80, fit: BoxFit.contain),
+      leadingWidth: 140,
+      leading: Row(
+        children: [
+          const BackButton(),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Image.asset(
+              'images/logo.png',
+              width: 60,
+              height: 60,
+              fit: BoxFit.contain,
+            )
+          )
+        ],
       ),
       actions: [
         IconButton(
