@@ -13,6 +13,7 @@ import 'pages/league_detail_page.dart';
 import 'pages/public_home_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/matches_page.dart';
+import 'pages/match_detail_page.dart';
 // import your other admin pages (teams, players, etc.)
 
 void main() => runApp(const MyApp());
@@ -38,6 +39,11 @@ class MyApp extends StatelessWidget {
         '/admin/teams/create': (_) => const CreateTeamPage(),
         '/profile_page': (_) => const PlayerProfilePage(),
         '/fan/matches': (_) => const MatchesPage(),
+        '/fan/matches/detail': (context) {
+          // pull the MatchInfo out of the settings.arguments
+          final match = ModalRoute.of(context)!.settings.arguments as MatchInfo;
+          return MatchDetailPage(match: match);
+        },
         // …teams, players, managers, staff, fixtures
       },
       onGenerateRoute: (settings) {
