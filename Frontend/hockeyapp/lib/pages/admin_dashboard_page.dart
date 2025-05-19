@@ -19,15 +19,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   final List<Widget> _pages = const [
     DashboardTab(),
-    LeagueListPage(),
-    TeamListPage(),
+    // LeagueListPage(),
+    // TeamListPage(),
     AdminProfileTab(),
   ];
 
   final List<BottomNavigationBarItem> _navItems = const [
     BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-    BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Leagues'),
-    BottomNavigationBarItem(icon: Icon(Icons.groups), label: 'Teams'),
     BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Profile'),
   ];
 

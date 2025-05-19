@@ -14,6 +14,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
 from .models import *
 from .permissions import IsAdmin, IsReadOnly
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -151,10 +152,9 @@ class FixtureViewSet(AdminOnlyViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
-# Update the PublicFixtureViewSet in views.py
 class PublicFixtureViewSet(ReadOnlyViewSet):
     queryset = Fixture.objects.all().select_related(
-        'home_team_id', 'away_team_id', 'league_id', 'victor'
+        'home_team_id', 'away_team_id', 'league_id', 'victor',
     ).prefetch_related('matchevent_set')
     
     def get_serializer_class(self):
@@ -199,6 +199,57 @@ class PublicFixtureViewSet(ReadOnlyViewSet):
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+class SimpleFixtureViewSet(ReadOnlyModelViewSet):
+    """
+    A simple viewset for viewing fixtures with basic information including scores.
+    Uses PublicFixtureSerializer for all actions.
+    """
+    queryset = Fixture.objects.all().select_related(
+        'home_team_id', 'away_team_id', 'league_id'
+    )
+    serializer_class = SimpleFixtureSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = {
+        'league_id': ['exact'],
+        'status': ['exact'],
+        'match_datetime': ['exact', 'gte', 'lte'],
+    }
+    search_fields = ['home_team_id__name', 'away_team_id__name', 'venue']
+    ordering_fields = ['match_datetime']
+    ordering = ['match_datetime']
+
+    @action(detail=False, methods=['get'])
+    def upcoming(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=Fixture.Status.UPCOMING)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def live(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=Fixture.Status.LIVE)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def finished(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(status=Fixture.Status.FINISHED)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 class PublicLeagueViewSet(ReadOnlyViewSet):
     queryset = League.objects.all()

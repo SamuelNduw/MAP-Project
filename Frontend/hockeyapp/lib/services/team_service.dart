@@ -52,17 +52,17 @@ class TeamService {
 
 
   Future<List<Team>> listTeams() async {
-  await _attachToken();
-  final resp = await _dio.get('teams/');
-  
-  // SAFER: assume response is a List
-  final data = resp.data;
-  if (data is List) {
-    return data.map((item) => Team.fromJson(item)).toList();
-  } else {
-    throw Exception("Expected a list but got ${data.runtimeType}");
+    await _attachToken();
+    final resp = await _dio.get('teams/');
+    
+    // SAFER: assume response is a List
+    final data = resp.data;
+    if (data is List) {
+      return data.map((item) => Team.fromJson(item)).toList();
+    } else {
+      throw Exception("Expected a list but got ${data.runtimeType}");
+    }
   }
-}
 
 
   Future<Team> getTeam(int id) async {
@@ -70,4 +70,18 @@ class TeamService {
     final resp = await _dio.get('teams/$id/');
     return Team.fromJson(resp.data);
   }
+
+  /// Update team by ID with given data map
+  Future<bool> updateTeam(int id, Map<String, dynamic> data) async {
+    try {
+      await _attachToken();  // include this if you need auth
+      final response = await _dio.put('/teams/$id/', data: data);
+      // Some APIs return 200, some 204 for successful updates
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      print('Error updating team: $e');
+      return false;
+    }
+  }
+
 }
