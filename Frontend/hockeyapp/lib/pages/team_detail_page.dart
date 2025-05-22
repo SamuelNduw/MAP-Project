@@ -120,11 +120,11 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
           child: Image.network(team.logoUrl, height: 100),
         ),
         const SizedBox(height: 16),
-        Text('Name: ' + team.name, style: const TextStyle(fontSize: 18)),
+        Text('Name: ${team.name}', style: const TextStyle(fontSize: 18)),
         const SizedBox(height: 8),
-        Text('Short Name: ' + team.shortName, style: const TextStyle(fontSize: 18)),
+        Text('Short Name: ${team.shortName}', style: const TextStyle(fontSize: 18)),
         const SizedBox(height: 8),
-        Text('Founded Year: ' + team.foundedYear.toString(), style: const TextStyle(fontSize: 18)),
+        Text('Founded Year: ${team.foundedYear}', style: const TextStyle(fontSize: 18)),
       ],
     );
   }

@@ -3,9 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hockeyapp/config.dart';
 
-import '../services/league_service.dart';
 import '../services/team_service.dart';
-import '../services/auth_service.dart';
 
 class LeagueDetailPage extends StatefulWidget {
   final int id;

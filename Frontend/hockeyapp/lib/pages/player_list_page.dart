@@ -199,8 +199,8 @@ class _PlayerListItem extends StatelessWidget {
                 radius: 24,
               )
             : const CircleAvatar(
-                child: Icon(Icons.person),
                 radius: 24,
+                child: Icon(Icons.person),
               ),
         title: Text('${player.firstName} ${player.lastName}'),
         subtitle: Column(
