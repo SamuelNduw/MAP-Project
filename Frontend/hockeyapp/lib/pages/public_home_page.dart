@@ -3,6 +3,7 @@ import 'public_league_list_page.dart';
 import 'matches_page.dart';
 import 'profile_page.dart';
 import 'public_player_list_page.dart';
+import 'public_match_events.dart';
 
 class PublicHomePage extends StatefulWidget {
   const PublicHomePage({super.key});
@@ -22,7 +23,7 @@ class _PublicHomePageState extends State<PublicHomePage> {
   // ];
   Widget _getCurrentPage() {
   switch (_currentIndex) {
-    case 0: return MatchesPage();
+    case 0: return PublicMatchEventsPage();
     case 1: return PublicLeagueListPage();
     case 2: return PublicPlayerListPage();
     case 3: return ProfilePage();

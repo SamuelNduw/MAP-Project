@@ -14,6 +14,7 @@ import 'pages/league_detail_page.dart';
 import 'pages/public_home_page.dart';
 import 'pages/player_list_page.dart';
 import 'pages/create_player_page.dart';
+import 'pages/match_event_page.dart';
 // import your other admin pages (teams, players, etc.)
 
 void main() => runApp(const MyApp());
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
         '/admin/teams/create': (_) => const CreateTeamPage(),
         '/admin/players': (_) => const PlayerListPage(),
         '/admin/players/create': (_) => const CreatePlayerPage(),
-        '/admin/fixtures': (_) => const MatchesPage()
+        '/admin/fixtures': (_) => const MatchEventForm()
       },
       onGenerateRoute: (settings) {
         final uri = Uri.parse(settings.name ?? '');
