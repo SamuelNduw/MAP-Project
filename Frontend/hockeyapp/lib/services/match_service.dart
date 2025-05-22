@@ -17,6 +17,7 @@ class Match {
   final int homeScore;
   final int awayScore;
   final String status;
+  final String venue;
 
   Match({
     required this.id,
@@ -31,6 +32,7 @@ class Match {
     required this.homeScore,
     required this.awayScore,
     required this.status,
+    required this.venue,
   });
 
   String get scoreDisplay => '$homeScore–$awayScore';
@@ -49,6 +51,7 @@ class Match {
       awayLogo: json['away_team_logo_url'] as String,
       homeScore: json['home_team_score'] as int,
       awayScore: json['away_team_score'] as int,
+      venue: json['venue'] as String,
     );
   }
 }

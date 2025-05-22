@@ -55,7 +55,7 @@ python manage.py migrate
 `python manage.py createsuperuser`
 
 ### Run the server (from the root Backend directory)
-`python manage.py runserver`
+`uvicorn hockeyapp.asgi:application --reload --host 0.0.0.0 --port 8000`
 
 ## Frontend
 ### Running the App on Android Emulator (via Android Studio Emulator + VS Code)

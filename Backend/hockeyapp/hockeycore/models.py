@@ -3,6 +3,9 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 class UserManager(BaseUserManager):
     def create_user(self, email, full_name, password=None, role='FAN'):
         if not email:
@@ -167,6 +170,20 @@ class Fixture(models.Model):
         return "TBD"
     
     def save(self, *args, **kwargs):
+        # Check if score changed
+        score_changed = self.pk is not None and (
+            Fixture.objects.filter(pk=self.pk)
+            .exclude(home_team_score=self.home_team_score, away_team_score=self.away_team_score)
+            .exists()
+        )
+
+        # Check if status has changed
+        status_changed = self.pk is not None and (
+            Fixture.objects.filter(pk=self.pk)
+            .exclude(status=self.status)
+            .exists()
+        )
+
         # Automatically set victor when scores are updated
         if self.home_team_score is not None and self.away_team_score is not None:
             if self.home_team_score > self.away_team_score:
@@ -176,6 +193,20 @@ class Fixture(models.Model):
             else:
                 self.victor = None
         super().save(*args, **kwargs)
+
+        # Notify group if score or status changed
+        if score_changed or status_changed:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"live_match_{self.id}",
+                {
+                    "type": "match_update",
+                    "data": {
+                        "score": self.score_display,
+                        "status": self.status,
+                    }
+                }
+            )
 
 class MatchEvent(models.Model):
     class Action(models.TextChoices):
