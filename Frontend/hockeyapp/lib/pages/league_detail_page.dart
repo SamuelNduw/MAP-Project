@@ -42,7 +42,7 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
   DateTime? _matchDate;
   final _venueCtrl = TextEditingController();
 
-   @override
+  @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
@@ -81,8 +81,9 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
       // 3) fetch all teams for dropdown
       _allTeams = await ts.listTeams();
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Failed to load data')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to load data')));
     } finally {
       setState(() => _loading = false);
     }
@@ -103,12 +104,14 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
         },
       );
       if (resp.statusCode == 200) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('League updated')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('League updated')));
       }
     } catch (_) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Update failed')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Update failed')));
     } finally {
       setState(() => _saving = false);
       _loadAll(); // refresh
@@ -122,21 +125,19 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
       final dio = await _createAuthDio();
       final resp = await dio.post(
         'admin/leagues/add-team/',
-        data: {
-          'league': widget.id,
-          'team': _selectedTeamId,
-        },
+        data: {'league': widget.id, 'team': _selectedTeamId},
       );
       if (resp.statusCode == 201) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Team added')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Team added')));
         _selectedTeamId = null;
         _loadAll();
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Add failed: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Add failed: ${e.toString()}')));
     } finally {
       setState(() => _adding = false);
     }
@@ -161,17 +162,21 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
   }
 
   Future<void> _addFixture() async {
-    if (_homeTeamId == null || _awayTeamId == null || _matchDate == null) return;
+    if (_homeTeamId == null || _awayTeamId == null || _matchDate == null)
+      return;
     setState(() => _addingFixture = true);
     try {
       final dio = await _createAuthDio();
-      await dio.post('admin/fixtures/', data: {
-        'league_id': widget.id,
-        'home_team_id': _homeTeamId,
-        'away_team_id': _awayTeamId,
-        'match_datetime': _matchDate!.toIso8601String().split('T').first,
-        'venue': _venueCtrl.text,
-      });
+      await dio.post(
+        'admin/fixtures/',
+        data: {
+          'league_id': widget.id,
+          'home_team_id': _homeTeamId,
+          'away_team_id': _awayTeamId,
+          'match_datetime': _matchDate!.toIso8601String().split('T').first,
+          'venue': _venueCtrl.text,
+        },
+      );
       await _loadFixtures();
     } catch (e) {
       // handle error…
@@ -180,7 +185,12 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
     }
   }
 
-  Future<void> _updateScore(int fixtureId, int homeScore, int awayScore, String status) async {
+  Future<void> _updateScore(
+    int fixtureId,
+    int homeScore,
+    int awayScore,
+    String status,
+  ) async {
     final dio = await _createAuthDio();
     await dio.post(
       'admin/fixtures/$fixtureId/update_score/',
@@ -193,13 +203,10 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
     await _loadFixtures();
   }
 
-
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -228,17 +235,29 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                     DropdownButtonFormField<int>(
                       hint: const Text('Home Team'),
                       value: _homeTeamId,
-                      items: _leagueTeams
-                          .map((t) => DropdownMenuItem(value: t.id, child: Text(t.name)))
-                          .toList(),
+                      items:
+                          _leagueTeams
+                              .map(
+                                (t) => DropdownMenuItem(
+                                  value: t.id,
+                                  child: Text(t.name),
+                                ),
+                              )
+                              .toList(),
                       onChanged: (v) => setState(() => _homeTeamId = v),
                     ),
                     DropdownButtonFormField<int>(
                       hint: const Text('Away Team'),
                       value: _awayTeamId,
-                      items: _leagueTeams
-                          .map((t) => DropdownMenuItem(value: t.id, child: Text(t.name)))
-                          .toList(),
+                      items:
+                          _leagueTeams
+                              .map(
+                                (t) => DropdownMenuItem(
+                                  value: t.id,
+                                  child: Text(t.name),
+                                ),
+                              )
+                              .toList(),
                       onChanged: (v) => setState(() => _awayTeamId = v),
                     ),
                     ListTile(
@@ -266,9 +285,9 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                     _addingFixture
                         ? const CircularProgressIndicator()
                         : ElevatedButton(
-                            onPressed: _addFixture,
-                            child: const Text('Create Fixture'),
-                          ),
+                          onPressed: _addFixture,
+                          child: const Text('Create Fixture'),
+                        ),
                   ],
                 ),
 
@@ -276,109 +295,166 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
 
                 // ── List Fixtures ───────────────────────────
                 _loadingFixtures
-                    ? const Expanded(child: Center(child: CircularProgressIndicator()))
+                    ? const Expanded(
+                      child: Center(child: CircularProgressIndicator()),
+                    )
                     : Expanded(
-                        child: ListView.builder(
-                          itemCount: _fixtures.length,
-                          itemBuilder: (ctx, i) {
-                            final fx = _fixtures[i];
-                            // inside your ListView.builder in _buildFixturesTab:
-                            return Card(
-                              child: ListTile(
-                                title: Text(
-                                  '${fx['home_team']['short_name']} vs ${fx['away_team']['short_name']}'
-                                ),
-                                subtitle: Text(
-                                  '${fx['match_datetime']} @ ${fx['venue']} — ${fx['status']}'
-                                ),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () {
-                                    // Create controllers with the current scores
-                                    // final homeCtrl = TextEditingController(
-                                    //   text: fx['home_team_score']?.toString() ?? '0'
-                                    // );
-                                    // final awayCtrl = TextEditingController(
-                                    //   text: fx['away_team_score']?.toString() ?? '0'
-                                    // );
-
-                                    // String selectedStatus = fx['status'] ?? 'UPCOMING';
-
-                                    showDialog(
-  context: context,
-  builder: (_) {
-    String selectedStatus = fx['status'] ?? 'UPCOMING';
-    final homeCtrl = TextEditingController(
-        text: fx['home_team_score']?.toString() ?? '0');
-    final awayCtrl = TextEditingController(
-        text: fx['away_team_score']?.toString() ?? '0');
-
-    return StatefulBuilder(
-      builder: (context, setState) => AlertDialog(
-        title: const Text('Update Score'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${fx['home_team']['short_name']} vs ${fx['away_team']['short_name']}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              controller: homeCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Home Score'),
-            ),
-            TextField(
-              controller: awayCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Away Score'),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: selectedStatus,
-              items: const [
-                // DropdownMenuItem(value: 'SCHEDULED', child: Text('Scheduled')),
-                DropdownMenuItem(value: 'UPCOMING', child: Text('Upcoming')),
-                DropdownMenuItem(value: 'LIVE', child: Text('Live')),
-                DropdownMenuItem(value: 'FINISHED', child: Text('Finished')),
-              ],
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() => selectedStatus = val);
-                }
-              },
-              decoration: const InputDecoration(labelText: 'Match Status'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final h = int.tryParse(homeCtrl.text) ?? 0;
-              final a = int.tryParse(awayCtrl.text) ?? 0;
-              await _updateScore(fx['id'], h, a, selectedStatus);
-              Navigator.of(context).pop();
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  },
-);
-
-                                  },
-                                ),
+                      child: ListView.builder(
+                        itemCount: _fixtures.length,
+                        itemBuilder: (ctx, i) {
+                          final fx = _fixtures[i];
+                          // inside your ListView.builder in _buildFixturesTab:
+                          return Card(
+                            child: ListTile(
+                              title: Text(
+                                '${fx['home_team']['short_name']} vs ${fx['away_team']['short_name']}',
                               ),
-                            );
+                              subtitle: Text(
+                                '${fx['match_datetime']} @ ${fx['venue']} — ${fx['status']}',
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () {
+                                  // Create controllers with the current scores
+                                  // final homeCtrl = TextEditingController(
+                                  //   text: fx['home_team_score']?.toString() ?? '0'
+                                  // );
+                                  // final awayCtrl = TextEditingController(
+                                  //   text: fx['away_team_score']?.toString() ?? '0'
+                                  // );
 
-                          },
-                        ),
+                                  // String selectedStatus = fx['status'] ?? 'UPCOMING';
+
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) {
+                                      String selectedStatus =
+                                          fx['status'] ?? 'UPCOMING';
+                                      final homeCtrl = TextEditingController(
+                                        text:
+                                            fx['home_team_score']?.toString() ??
+                                            '0',
+                                      );
+                                      final awayCtrl = TextEditingController(
+                                        text:
+                                            fx['away_team_score']?.toString() ??
+                                            '0',
+                                      );
+
+                                      return StatefulBuilder(
+                                        builder:
+                                            (context, setState) => AlertDialog(
+                                              title: const Text('Update Score'),
+                                              content: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    '${fx['home_team']['short_name']} vs ${fx['away_team']['short_name']}',
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  TextField(
+                                                    controller: homeCtrl,
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                    decoration:
+                                                        const InputDecoration(
+                                                          labelText:
+                                                              'Home Score',
+                                                        ),
+                                                  ),
+                                                  TextField(
+                                                    controller: awayCtrl,
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                    decoration:
+                                                        const InputDecoration(
+                                                          labelText:
+                                                              'Away Score',
+                                                        ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  DropdownButtonFormField<
+                                                    String
+                                                  >(
+                                                    value: selectedStatus,
+                                                    items: const [
+                                                      // DropdownMenuItem(value: 'SCHEDULED', child: Text('Scheduled')),
+                                                      DropdownMenuItem(
+                                                        value: 'UPCOMING',
+                                                        child: Text('Upcoming'),
+                                                      ),
+                                                      DropdownMenuItem(
+                                                        value: 'LIVE',
+                                                        child: Text('Live'),
+                                                      ),
+                                                      DropdownMenuItem(
+                                                        value: 'FINISHED',
+                                                        child: Text('Finished'),
+                                                      ),
+                                                    ],
+                                                    onChanged: (val) {
+                                                      if (val != null) {
+                                                        setState(
+                                                          () =>
+                                                              selectedStatus =
+                                                                  val,
+                                                        );
+                                                      }
+                                                    },
+                                                    decoration:
+                                                        const InputDecoration(
+                                                          labelText:
+                                                              'Match Status',
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed:
+                                                      () =>
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop(),
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                ElevatedButton(
+                                                  onPressed: () async {
+                                                    final h =
+                                                        int.tryParse(
+                                                          homeCtrl.text,
+                                                        ) ??
+                                                        0;
+                                                    final a =
+                                                        int.tryParse(
+                                                          awayCtrl.text,
+                                                        ) ??
+                                                        0;
+                                                    await _updateScore(
+                                                      fx['id'],
+                                                      h,
+                                                      a,
+                                                      selectedStatus,
+                                                    );
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: const Text('Save'),
+                                                ),
+                                              ],
+                                            ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
                       ),
+                    ),
               ],
             ),
           ),
@@ -410,9 +486,15 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                 DropdownButtonFormField<String>(
                   value: _status,
                   items: const [
-                    DropdownMenuItem(value: 'SCHEDULED', child: Text('Scheduled')),
+                    DropdownMenuItem(
+                      value: 'SCHEDULED',
+                      child: Text('Scheduled'),
+                    ),
                     DropdownMenuItem(value: 'RUNNING', child: Text('Running')),
-                    DropdownMenuItem(value: 'COMPLETED', child: Text('Completed')),
+                    DropdownMenuItem(
+                      value: 'COMPLETED',
+                      child: Text('Completed'),
+                    ),
                   ],
                   onChanged: (v) => setState(() => _status = v!),
                   decoration: const InputDecoration(labelText: 'Status'),
@@ -421,9 +503,9 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                 _saving
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
-                        onPressed: _saveInfo,
-                        child: const Text('Save Changes'),
-                      ),
+                      onPressed: _saveInfo,
+                      child: const Text('Save Changes'),
+                    ),
               ],
             ),
           ),
@@ -440,14 +522,19 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                       child: DropdownButtonFormField<int>(
                         hint: const Text('Select team to add'),
                         value: _selectedTeamId,
-                        items: _allTeams
-                            .where((t) =>
-                                !_leagueTeams.any((lt) => lt.id == t.id))
-                            .map((t) => DropdownMenuItem(
-                                  value: t.id,
-                                  child: Text(t.name),
-                                ))
-                            .toList(),
+                        items:
+                            _allTeams
+                                .where(
+                                  (t) =>
+                                      !_leagueTeams.any((lt) => lt.id == t.id),
+                                )
+                                .map(
+                                  (t) => DropdownMenuItem(
+                                    value: t.id,
+                                    child: Text(t.name),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (v) => setState(() => _selectedTeamId = v),
                       ),
                     ),
@@ -455,7 +542,9 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                     _adding
                         ? const CircularProgressIndicator()
                         : ElevatedButton(
-                            onPressed: _addTeam, child: const Text('Add')),
+                          onPressed: _addTeam,
+                          child: const Text('Add'),
+                        ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -465,38 +554,42 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                   child: GridView.builder(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 0.8,
-                    ),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.8,
+                        ),
                     itemCount: _leagueTeams.length,
                     itemBuilder: (context, i) {
                       final team = _leagueTeams[i];
                       return Card(
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         elevation: 4,
                         child: Column(
                           children: [
                             ClipRRect(
                               borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(12)),
+                                top: Radius.circular(12),
+                              ),
                               child: Image.network(
                                 team.logoUrl,
                                 height: 80,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    const Icon(Icons.broken_image),
+                                errorBuilder:
+                                    (_, __, ___) =>
+                                        const Icon(Icons.broken_image),
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               team.name,
                               textAlign: TextAlign.center,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             Text(
                               'Founded: ${team.foundedYear}',
@@ -515,8 +608,6 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
       ),
     );
   }
-
-  
 
   @override
   void dispose() {

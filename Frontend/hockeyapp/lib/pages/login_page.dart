@@ -1,7 +1,7 @@
-// lib/pages/login_page.dart
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:hockeyapp/services/auth_service.dart';
 import 'public_home_page.dart';
+import '../theme/app_theme.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -37,79 +37,100 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: ${e.toString()}')));
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
+      backgroundColor: AppTheme.backgroundColor,
       body: SingleChildScrollView(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 60), // move elements down from the top
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'images/logo.png',
-                  width: 220,
-                  height: 220,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
+          child: Column(
+            children: [
+              Image.asset('images/logo.png', width: 160, height: 160),
+              const SizedBox(height: 24),
+              const Text(
+                "Welcome Back!",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryColor,
                 ),
-                const SizedBox(height: 24),
-                Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextFormField(
-                            controller: _emailCtrl,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(labelText: "Email"),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) return 'Email required';
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return 'Invalid email';
-                              return null;
-                            },
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "Log in to continue",
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+              const SizedBox(height: 32),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _emailCtrl,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            labelText: "Email",
+                            prefixIcon: Icon(Icons.email),
                           ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: _passwordCtrl,
-                            obscureText: true,
-                            decoration: const InputDecoration(labelText: "Password"),
-                            validator: (value) => value != null && value.length >= 6
-                                ? null
-                                : 'Minimum 6 characters required',
+                          validator: (value) {
+                            if (value == null || value.isEmpty)
+                              return 'Email required';
+                            if (!RegExp(
+                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                            ).hasMatch(value))
+                              return 'Invalid email';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _passwordCtrl,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: "Password",
+                            prefixIcon: Icon(Icons.lock),
                           ),
-                          const SizedBox(height: 20),
-                          _isLoading
-                              ? const CircularProgressIndicator()
-                              : ElevatedButton(
-                                  onPressed: _handleLogin,
-                                  child: const Text("Login"),
-                                ),
-                          TextButton(
-                            onPressed: () => Navigator.pushNamed(context, '/register'),
-                            child: const Text('Create account'),
-                          ),
-                        ],
-                      ),
+                          validator:
+                              (value) =>
+                                  value != null && value.length >= 6
+                                      ? null
+                                      : 'Minimum 6 characters required',
+                        ),
+                        const SizedBox(height: 24),
+                        _isLoading
+                            ? const CircularProgressIndicator()
+                            : ElevatedButton.icon(
+                              icon: const Icon(Icons.login),
+                              label: const Text("Login"),
+                              onPressed: _handleLogin,
+                            ),
+                        TextButton(
+                          onPressed:
+                              () => Navigator.pushNamed(context, '/register'),
+                          child: const Text('Create an account'),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
