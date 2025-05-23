@@ -65,6 +65,14 @@ class MatchService {
     if (token != null) _dio.options.headers['Authorization'] = 'Bearer $token';
   }
 
+  Future<List<Map<String, dynamic>>> getPastEvents(int fixtureId) async {
+    await _attachToken();
+    final resp = await _dio.get('/publicmatchevents/', queryParameters: {
+      'fixture': fixtureId,
+    });
+    return List<Map<String, dynamic>>.from(resp.data);
+  }
+
   Future<List<Match>> listFixtures() async {
     await _attachToken();
     final resp = await _dio.get('simplefixtures/');
@@ -77,4 +85,18 @@ class MatchService {
     final resp = await _dio.get('simplefixtures/$id/');
     return Match.fromJson(resp.data as Map<String, dynamic>);
   }
+
+  Future<void> updateFixture(int id, {required int homeScore, required int awayScore, required String status}) async {
+    await _attachToken();
+    final resp = await _dio.post('/admin/fixtures/$id/update_score/', data: {
+      'home_team_score': homeScore,
+      'away_team_score': awayScore,
+      'status': status,
+    });
+    if (resp.statusCode != 200 && resp.statusCode != 204){
+      throw Exception('Failed to update fixture: ${resp.statusCode}');
+    }
+  }
+
+
 }

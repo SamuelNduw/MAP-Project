@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hockeyapp/config.dart';
-
 import '../services/league_service.dart';
 import '../services/team_service.dart';
 import '../services/auth_service.dart';
+import 'package:hockeyapp/pages/fixture_detail_page.dart';
 
 class LeagueDetailPage extends StatefulWidget {
   final int id;
@@ -282,101 +282,24 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                           itemCount: _fixtures.length,
                           itemBuilder: (ctx, i) {
                             final fx = _fixtures[i];
-                            // inside your ListView.builder in _buildFixturesTab:
-                            return Card(
-                              child: ListTile(
-                                title: Text(
-                                  '${fx['home_team']['short_name']} vs ${fx['away_team']['short_name']}'
+                            return InkWell(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FixtureDetailPage(fixtureId: fx['id']),
                                 ),
-                                subtitle: Text(
-                                  '${fx['match_datetime']} @ ${fx['venue']} — ${fx['status']}'
-                                ),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () {
-                                    // Create controllers with the current scores
-                                    // final homeCtrl = TextEditingController(
-                                    //   text: fx['home_team_score']?.toString() ?? '0'
-                                    // );
-                                    // final awayCtrl = TextEditingController(
-                                    //   text: fx['away_team_score']?.toString() ?? '0'
-                                    // );
-
-                                    // String selectedStatus = fx['status'] ?? 'UPCOMING';
-
-                                    showDialog(
-  context: context,
-  builder: (_) {
-    String selectedStatus = fx['status'] ?? 'UPCOMING';
-    final homeCtrl = TextEditingController(
-        text: fx['home_team_score']?.toString() ?? '0');
-    final awayCtrl = TextEditingController(
-        text: fx['away_team_score']?.toString() ?? '0');
-
-    return StatefulBuilder(
-      builder: (context, setState) => AlertDialog(
-        title: const Text('Update Score'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${fx['home_team']['short_name']} vs ${fx['away_team']['short_name']}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              controller: homeCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Home Score'),
-            ),
-            TextField(
-              controller: awayCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Away Score'),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: selectedStatus,
-              items: const [
-                // DropdownMenuItem(value: 'SCHEDULED', child: Text('Scheduled')),
-                DropdownMenuItem(value: 'UPCOMING', child: Text('Upcoming')),
-                DropdownMenuItem(value: 'LIVE', child: Text('Live')),
-                DropdownMenuItem(value: 'FINISHED', child: Text('Finished')),
-              ],
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() => selectedStatus = val);
-                }
-              },
-              decoration: const InputDecoration(labelText: 'Match Status'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final h = int.tryParse(homeCtrl.text) ?? 0;
-              final a = int.tryParse(awayCtrl.text) ?? 0;
-              await _updateScore(fx['id'], h, a, selectedStatus);
-              Navigator.of(context).pop();
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  },
-);
-
-                                  },
+                              ),
+                              child: Card(
+                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: ListTile(
+                                  title: Text('${fx['home_team']['short_name']} vs ${fx['away_team']['short_name']}'),
+                                  subtitle: Text('${fx['match_datetime']} • ${fx['status']}'),
+                                  trailing: Text('${fx['home_team_score']}-${fx['away_team_score']}'),
                                 ),
                               ),
                             );
-
                           },
+
                         ),
                       ),
               ],

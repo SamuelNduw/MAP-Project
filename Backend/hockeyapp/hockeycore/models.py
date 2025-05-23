@@ -212,21 +212,90 @@ class MatchEvent(models.Model):
     class Action(models.TextChoices):
         GOAL = 'goal', 'Goal'
         CARD = 'card', 'Card'
+        SUBSTITUTION = 'substitution', 'Substitution'
+        INJURY = 'injury', 'Injury'
+
         PERIOD_END = 'period_end', 'Period End'
         SHOT = 'shot', 'Shot'
         PENALTY = 'penalty', 'Penalty'
 
-    fixture_id = models.ForeignKey(Fixture, on_delete=models.CASCADE)
-    minute = models.IntegerField()
+    fixture = models.ForeignKey(Fixture, on_delete=models.CASCADE)
+    minute = models.PositiveSmallIntegerField()
     event_type = models.CharField(
-        max_length=10,
+        max_length=12,
         choices=Action.choices,
     )
-    player_id = models.ForeignKey(Player, on_delete=models.CASCADE)
-    assisting_player_id = models.ForeignKey(Player, on_delete=models.SET_NULL, null=True, blank=True, related_name='assists')
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    assisting = models.ForeignKey(
+        Player, 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True, 
+        related_name='assists')
+    card_type = models.CharField(
+        max_length=6,
+        choices=[('green', 'Green'), ('yellow', 'Yellow'), ('red', 'Red')],
+        null=True, blank=True)
+    sub_in = models.ForeignKey(
+        Player, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='sub_in_events'
+    )
+    sub_out = models.ForeignKey(
+        Player, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='sub_out_events'
+    )
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        # Notify the WS group of the new/updated event
+        channel_layer = get_channel_layer()
+        payload = {
+            'event_type': self.event_type,
+            'minute':      self.minute,
+            # team inferred from player.team_id
+            'team':        {
+                'id': self.player.team_id.id,
+                'name': self.player.team_id.name
+            },
+            'player': {
+                'id':   self.player.id,
+                'name': f"{self.player.first_name} {self.player.last_name}"
+            },
+            'time': self.minute,
+        }
+        # add type-specific extras:
+        if self.event_type == MatchEvent.Action.GOAL:
+            payload.update({
+                'assistant': (
+                    { 'id': self.assisting.id,
+                      'name': f"{self.assisting.first_name} {self.assisting.last_name}" }
+                    if self.assisting else None
+                )
+            })
+        elif self.event_type == MatchEvent.Action.CARD:
+            payload['card_type'] = self.card_type
+        elif self.event_type == MatchEvent.Action.SUBSTITUTION:
+            payload.update({
+                'player_in':  {'id': self.sub_in.id,  'name': f"{self.sub_in.first_name} {self.sub_in.last_name}"},
+                'player_out': {'id': self.sub_out.id, 'name': f"{self.sub_out.first_name} {self.sub_out.last_name}"}
+            })
+        # injury needs no extras beyond player/time
+
+        async_to_sync(channel_layer.group_send)(
+            f"live_match_{self.fixture.id}",
+            {
+                "type": "match_event",  
+                "data": payload
+            }
+        )
+    
     def __str__(self):
         return f"{self.player_id} - {self.event_type} at {self.minute}'"
+
+       
 
 class PlayerStat(models.Model):
     player_id = models.ForeignKey(Player, on_delete=models.CASCADE) 
