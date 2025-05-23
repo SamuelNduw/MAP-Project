@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hockeyapp/services/player_service.dart';
 import 'package:hockeyapp/services/team_service.dart';
+import '../theme/app_theme.dart';
 
 class CreatePlayerPage extends StatefulWidget {
   const CreatePlayerPage({super.key});
@@ -42,9 +43,9 @@ class _CreatePlayerPageState extends State<CreatePlayerPage> {
     } catch (e) {
       setState(() => _fetchingTeams = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load teams: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load teams: $e')));
       }
     }
   }
@@ -59,16 +60,19 @@ class _CreatePlayerPageState extends State<CreatePlayerPage> {
         lastName: _lastNameCtrl.text,
         dob: _dobCtrl.text,
         position: _position,
-        jerseyNo: _jerseyNoCtrl.text.isNotEmpty
-            ? int.tryParse(_jerseyNoCtrl.text)
-            : null,
+        jerseyNo:
+            _jerseyNoCtrl.text.isNotEmpty
+                ? int.tryParse(_jerseyNoCtrl.text)
+                : null,
         nationality: _nationalityCtrl.text,
-        heightCm: _heightCmCtrl.text.isNotEmpty
-            ? int.tryParse(_heightCmCtrl.text)
-            : null,
-        weightKg: _weightKgCtrl.text.isNotEmpty
-            ? int.tryParse(_weightKgCtrl.text)
-            : null,
+        heightCm:
+            _heightCmCtrl.text.isNotEmpty
+                ? int.tryParse(_heightCmCtrl.text)
+                : null,
+        weightKg:
+            _weightKgCtrl.text.isNotEmpty
+                ? int.tryParse(_weightKgCtrl.text)
+                : null,
         photo: _photoCtrl.text,
         teamId: _selectedTeamId!,
       );
@@ -78,21 +82,42 @@ class _CreatePlayerPageState extends State<CreatePlayerPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating player: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error creating player: $e')));
       }
     } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Player')),
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: AppTheme.primaryColor,
+        elevation: 1,
+        title: const Text(
+          'Create Player',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Image.asset(
+              'images/logo.png',
+              width: 40,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -101,125 +126,135 @@ class _CreatePlayerPageState extends State<CreatePlayerPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  controller: _firstNameCtrl,
-                  decoration: const InputDecoration(labelText: 'First Name *'),
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
+                _buildTextField(_firstNameCtrl, 'First Name *'),
+                _buildTextField(_lastNameCtrl, 'Last Name *'),
+                _buildTextField(
+                  _dobCtrl,
+                  'Date of Birth (YYYY-MM-DD) *',
+                  hint: '2000-01-01',
                 ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _lastNameCtrl,
-                  decoration: const InputDecoration(labelText: 'Last Name *'),
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _dobCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Date of Birth (YYYY-MM-DD) *',
-                    hintText: '2000-01-01',
-                  ),
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-
-                InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Team *',
-                    border: OutlineInputBorder(),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: _fetchingTeams
-                        ? const Center(child: CircularProgressIndicator())
-                        : DropdownButton<int>(
-                            value: _selectedTeamId,
-                            hint: const Text('Select Team'),
-                            isExpanded: true,
-                            items: _teams.map((team) {
-                              return DropdownMenuItem<int>(
-                                value: team.id,
-                                child: Text(team.name),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() => _selectedTeamId = value);
-                            },
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Position',
-                    border: OutlineInputBorder(),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _position,
-                      hint: const Text('Select Position (Optional)'),
-                      isExpanded: true,
-                      items: const [
-                        DropdownMenuItem(value: 'GK', child: Text('Goalkeeper')),
-                        DropdownMenuItem(value: 'D', child: Text('Defender')),
-                        DropdownMenuItem(value: 'M', child: Text('Midfielder')),
-                        DropdownMenuItem(value: 'F', child: Text('Forward')),
-                      ],
-                      onChanged: (value) {
-                        setState(() => _position = value);
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _jerseyNoCtrl,
-                  decoration: const InputDecoration(labelText: 'Jersey Number (Optional)'),
+                _buildTeamDropdown(),
+                _buildPositionDropdown(),
+                _buildTextField(
+                  _jerseyNoCtrl,
+                  'Jersey Number (Optional)',
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _nationalityCtrl,
-                  decoration: const InputDecoration(labelText: 'Nationality *'),
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _heightCmCtrl,
-                  decoration: const InputDecoration(labelText: 'Height (cm) (Optional)'),
+                _buildTextField(_nationalityCtrl, 'Nationality *'),
+                _buildTextField(
+                  _heightCmCtrl,
+                  'Height (cm) (Optional)',
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _weightKgCtrl,
-                  decoration: const InputDecoration(labelText: 'Weight (kg) (Optional)'),
+                _buildTextField(
+                  _weightKgCtrl,
+                  'Weight (kg) (Optional)',
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _photoCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Photo URL (Optional)',
-                    hintText: 'https://example.com/photo.jpg',
-                  ),
+                _buildTextField(
+                  _photoCtrl,
+                  'Photo URL (Optional)',
+                  hint: 'https://example.com/photo.jpg',
                 ),
                 const SizedBox(height: 24),
-
                 _loading
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
-                        onPressed: _selectedTeamId == null ? null : _submit,
-                        child: const Text('Create Player'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.accentColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        textStyle: const TextStyle(fontSize: 16),
                       ),
+                      onPressed: _selectedTeamId == null ? null : _submit,
+                      child: const Text('Create Player'),
+                    ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label, {
+    TextInputType keyboardType = TextInputType.text,
+    String? hint,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          border: const OutlineInputBorder(),
+        ),
+        keyboardType: keyboardType,
+        validator:
+            (v) =>
+                label.contains('*') && (v == null || v.isEmpty)
+                    ? 'Required'
+                    : null,
+      ),
+    );
+  }
+
+  Widget _buildTeamDropdown() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: InputDecorator(
+        decoration: const InputDecoration(
+          labelText: 'Team *',
+          border: OutlineInputBorder(),
+        ),
+        child: DropdownButtonHideUnderline(
+          child:
+              _fetchingTeams
+                  ? const Center(child: CircularProgressIndicator())
+                  : DropdownButton<int>(
+                    value: _selectedTeamId,
+                    hint: const Text('Select Team'),
+                    isExpanded: true,
+                    items:
+                        _teams.map((team) {
+                          return DropdownMenuItem<int>(
+                            value: team.id,
+                            child: Text(team.name),
+                          );
+                        }).toList(),
+                    onChanged: (value) {
+                      setState(() => _selectedTeamId = value);
+                    },
+                  ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPositionDropdown() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: InputDecorator(
+        decoration: const InputDecoration(
+          labelText: 'Position',
+          border: OutlineInputBorder(),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: _position,
+            hint: const Text('Select Position (Optional)'),
+            isExpanded: true,
+            items: const [
+              DropdownMenuItem(value: 'GK', child: Text('Goalkeeper')),
+              DropdownMenuItem(value: 'D', child: Text('Defender')),
+              DropdownMenuItem(value: 'M', child: Text('Midfielder')),
+              DropdownMenuItem(value: 'F', child: Text('Forward')),
+            ],
+            onChanged: (value) {
+              setState(() => _position = value);
+            },
           ),
         ),
       ),

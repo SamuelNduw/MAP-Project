@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hockeyapp/pages/create_player_page.dart';
 import 'package:hockeyapp/pages/update_player_page.dart';
 import 'package:hockeyapp/services/player_service.dart';
+import '../theme/app_theme.dart';
 
 class PlayerListPage extends StatefulWidget {
   const PlayerListPage({super.key});
@@ -33,10 +34,17 @@ class _PlayerListPageState extends State<PlayerListPage> {
   void _onSearch() {
     final query = _searchCtrl.text.toLowerCase();
     setState(() {
-      _filtered = _players.where((p) =>
-        '${p.firstName} ${p.lastName}'.toLowerCase().contains(query) ||
-        (p.teamShortName?.toLowerCase().contains(query) ?? false) ||
-        (p.position?.toLowerCase().contains(query) ?? false)).toList();
+      _filtered =
+          _players
+              .where(
+                (p) =>
+                    '${p.firstName} ${p.lastName}'.toLowerCase().contains(
+                      query,
+                    ) ||
+                    (p.teamShortName?.toLowerCase().contains(query) ?? false) ||
+                    (p.position?.toLowerCase().contains(query) ?? false),
+              )
+              .toList();
     });
   }
 
@@ -67,34 +75,52 @@ class _PlayerListPageState extends State<PlayerListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Players'),
+        backgroundColor: AppTheme.primaryColor,
+        elevation: 1,
+        title: const Text('Players', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add, color: Colors.white),
             onPressed: () async {
               final result = await Navigator.push<bool>(
                 context,
-                MaterialPageRoute(builder: (context) => const CreatePlayerPage()),
+                MaterialPageRoute(
+                  builder: (context) => const CreatePlayerPage(),
+                ),
               );
               if (result == true) {
                 _loadPlayers();
               }
             },
           ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Image.asset(
+              'images/logo.png',
+              width: 40,
+              fit: BoxFit.contain,
+            ),
+          ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
+          preferredSize: const Size.fromHeight(64),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: TextField(
-              controller: _searchCtrl,
-              decoration: InputDecoration(
-                hintText: 'Search players...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
-                fillColor: Colors.white,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: const InputDecoration(
+                  hintText: 'Search players...',
+                  prefixIcon: Icon(Icons.search),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.all(12),
+                ),
               ),
             ),
           ),
@@ -117,6 +143,9 @@ class _PlayerListPageState extends State<PlayerListPage> {
             Text('Error: $_error'),
             const SizedBox(height: 16),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentColor,
+              ),
               onPressed: _loadPlayers,
               child: const Text('Retry'),
             ),
@@ -145,29 +174,53 @@ class _PlayerListPageState extends State<PlayerListPage> {
               );
             },
             child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 4,
-              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 3,
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundImage: NetworkImage(player.photo ?? ''),
-                      onBackgroundImageError: (_, __) {},
+                      backgroundImage:
+                          player.photo != null && player.photo!.isNotEmpty
+                              ? NetworkImage(player.photo!)
+                              : null,
+                      child:
+                          player.photo == null || player.photo!.isEmpty
+                              ? const Icon(Icons.person, size: 30)
+                              : null,
+                      backgroundColor: AppTheme.primaryColor.withOpacity(0.2),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${player.firstName} ${player.lastName}', style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 16)),
-                          Text('Team: ${player.teamShortName ?? "Unknown"}'),
-                          Text('Position: ${player.position ?? "N/A"}'),
+                          Text(
+                            '${player.firstName} ${player.lastName}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Team: ${player.teamShortName ?? "Unknown"}',
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                          Text(
+                            'Position: ${_getPositionName(player.position ?? "")}',
+                            style: const TextStyle(color: Colors.grey),
+                          ),
                         ],
                       ),
                     ),
+                    const Icon(Icons.chevron_right, color: Colors.grey),
                   ],
                 ),
               ),
@@ -177,48 +230,9 @@ class _PlayerListPageState extends State<PlayerListPage> {
       ),
     );
   }
-}
 
-class _PlayerListItem extends StatelessWidget {
-  final Player player;
-  final VoidCallback onTap;
-
-  const _PlayerListItem({
-    required this.player,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ListTile(
-        leading: player.photo != null
-            ? CircleAvatar(
-                backgroundImage: NetworkImage(player.photo!),
-                radius: 24,
-              )
-            : const CircleAvatar(
-                child: Icon(Icons.person),
-                radius: 24,
-              ),
-        title: Text('${player.firstName} ${player.lastName}'),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (player.position != null) Text('Position: ${_getPositionName(player.position!)}'),
-            if (player.jerseyNo != null) Text('Jersey: #${player.jerseyNo}'),
-            Text('Team ID: ${player.teamId}'),
-          ],
-        ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-      ),
-    );
-  }
-
-  String _getPositionName(String positionCode) {
-    switch (positionCode) {
+  String _getPositionName(String code) {
+    switch (code) {
       case 'GK':
         return 'Goalkeeper';
       case 'D':
@@ -228,7 +242,7 @@ class _PlayerListItem extends StatelessWidget {
       case 'F':
         return 'Forward';
       default:
-        return positionCode;
+        return code;
     }
   }
 }

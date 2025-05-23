@@ -1,8 +1,8 @@
+//first 250 lines
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hockeyapp/config.dart';
-
 import '../services/league_service.dart';
 import '../services/team_service.dart';
 import '../services/auth_service.dart';
@@ -10,7 +10,6 @@ import '../services/auth_service.dart';
 class LeagueDetailPage extends StatefulWidget {
   final int id;
   const LeagueDetailPage({super.key, required this.id});
-
   @override
   State<LeagueDetailPage> createState() => _LeagueDetailPageState();
 }
@@ -20,23 +19,19 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
   late TabController _tabController;
   final _storage = const FlutterSecureStorage();
   bool _loading = true, _saving = false, _adding = false;
-
   // League info controllers
   final _nameCtrl = TextEditingController();
   final _seasonCtrl = TextEditingController();
   final _startCtrl = TextEditingController();
   final _endCtrl = TextEditingController();
   String _status = 'SCHEDULED';
-
   // Teams
   List<Team> _leagueTeams = [];
   List<Team> _allTeams = [];
   int? _selectedTeamId;
-
   // Fixtures
   List<Map<String, dynamic>> _fixtures = [];
   bool _loadingFixtures = true, _addingFixture = false;
-
   // Controllers for new‐fixture form
   int? _homeTeamId, _awayTeamId;
   DateTime? _matchDate;
@@ -59,7 +54,6 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
 
   Future<void> _loadAll() async {
     setState(() => _loading = true);
-
     try {
       final dio = await _createAuthDio();
 
@@ -71,13 +65,10 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
       _startCtrl.text = data['start_date'];
       _endCtrl.text = data['end_date'];
       _status = data['status'];
-
       final List<dynamic> teamIds = data['teams'] ?? [];
-
       // 2) fetch team details for league
       final ts = TeamService();
       _leagueTeams = await Future.wait(teamIds.map((tid) => ts.getTeam(tid)));
-
       // 3) fetch all teams for dropdown
       _allTeams = await ts.listTeams();
     } catch (e) {
@@ -208,7 +199,6 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('League Details'),
@@ -260,6 +250,7 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                               .toList(),
                       onChanged: (v) => setState(() => _awayTeamId = v),
                     ),
+                    //SECOND HALF
                     ListTile(
                       title: Text(
                         _matchDate == null
@@ -292,7 +283,6 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                 ),
 
                 const SizedBox(height: 12),
-
                 // ── List Fixtures ───────────────────────────
                 _loadingFixtures
                     ? const Expanded(
@@ -322,9 +312,7 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                                   // final awayCtrl = TextEditingController(
                                   //   text: fx['away_team_score']?.toString() ?? '0'
                                   // );
-
                                   // String selectedStatus = fx['status'] ?? 'UPCOMING';
-
                                   showDialog(
                                     context: context,
                                     builder: (_) {
@@ -509,7 +497,6 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
               ],
             ),
           ),
-
           // ── Teams Tab ───────────────────────────
           Padding(
             padding: const EdgeInsets.all(8),
@@ -548,7 +535,6 @@ class _LeagueDetailPageState extends State<LeagueDetailPage>
                   ],
                 ),
                 const SizedBox(height: 12),
-
                 // Team cards grid
                 Expanded(
                   child: GridView.builder(

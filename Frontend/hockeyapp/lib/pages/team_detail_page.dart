@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hockeyapp/services/team_service.dart';
+import '../theme/app_theme.dart';
 
 class TeamDetailPage extends StatefulWidget {
   final int id;
@@ -13,7 +14,6 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
   late Future<Team> _teamFuture;
   bool _editing = false;
 
-  // controllers for editing
   final _nameCtrl = TextEditingController();
   final _shortNameCtrl = TextEditingController();
   final _logoUrlCtrl = TextEditingController();
@@ -59,24 +59,33 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
         const SnackBar(content: Text('Team updated successfully')),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error updating team')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Error updating team')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Team Details'),
+        backgroundColor: AppTheme.primaryColor,
+        title: const Text(
+          'Team Details',
+          style: TextStyle(color: Colors.white),
+        ),
+        leading: const BackButton(color: Colors.white),
         actions: [
           FutureBuilder<Team>(
             future: _teamFuture,
             builder: (context, snapshot) {
               if (!snapshot.hasData) return const SizedBox();
               return IconButton(
-                icon: Icon(_editing ? Icons.save : Icons.edit),
+                icon: Icon(
+                  _editing ? Icons.save : Icons.edit,
+                  color: Colors.white,
+                ),
                 onPressed: () {
                   if (_editing) {
                     _saveChanges();
@@ -96,13 +105,12 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: \${snapshot.error}'));
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData) {
             return const Center(child: Text('Team not found'));
           }
           final team = snapshot.data!;
-
           return Padding(
             padding: const EdgeInsets.all(16),
             child: _editing ? _buildEditForm() : _buildDetailView(team),
@@ -116,15 +124,20 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Center(
-          child: Image.network(team.logoUrl, height: 100),
+        if (team.logoUrl.isNotEmpty)
+          Center(child: Image.network(team.logoUrl, height: 120)),
+        const SizedBox(height: 20),
+        Text('Name: ${team.name}', style: const TextStyle(fontSize: 18)),
+        const SizedBox(height: 12),
+        Text(
+          'Short Name: ${team.shortName}',
+          style: const TextStyle(fontSize: 18),
         ),
-        const SizedBox(height: 16),
-        Text('Name: ' + team.name, style: const TextStyle(fontSize: 18)),
-        const SizedBox(height: 8),
-        Text('Short Name: ' + team.shortName, style: const TextStyle(fontSize: 18)),
-        const SizedBox(height: 8),
-        Text('Founded Year: ' + team.foundedYear.toString(), style: const TextStyle(fontSize: 18)),
+        const SizedBox(height: 12),
+        Text(
+          'Founded Year: ${team.foundedYear}',
+          style: const TextStyle(fontSize: 18),
+        ),
       ],
     );
   }
@@ -133,27 +146,35 @@ class _TeamDetailPageState extends State<TeamDetailPage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          TextField(
-            controller: _nameCtrl,
-            decoration: const InputDecoration(labelText: 'Name'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _shortNameCtrl,
-            decoration: const InputDecoration(labelText: 'Short Name'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _logoUrlCtrl,
-            decoration: const InputDecoration(labelText: 'Logo URL'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _foundedYearCtrl,
-            decoration: const InputDecoration(labelText: 'Founded Year'),
+          _buildInput(_nameCtrl, 'Name'),
+          const SizedBox(height: 16),
+          _buildInput(_shortNameCtrl, 'Short Name'),
+          const SizedBox(height: 16),
+          _buildInput(_logoUrlCtrl, 'Logo URL'),
+          const SizedBox(height: 16),
+          _buildInput(
+            _foundedYearCtrl,
+            'Founded Year',
             keyboardType: TextInputType.number,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInput(
+    TextEditingController controller,
+    String label, {
+    TextInputType? keyboardType,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

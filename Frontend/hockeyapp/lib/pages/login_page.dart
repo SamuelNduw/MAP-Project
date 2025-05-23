@@ -49,9 +49,15 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: AppTheme.primaryColor,
+        title: const Text('Login', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
           child: Column(
             children: [
               Image.asset('images/logo.png', width: 160, height: 160),
@@ -67,10 +73,11 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 10),
               const Text(
                 "Log in to continue",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: AppTheme.subtitleTextStyle,
               ),
               const SizedBox(height: 32),
               Card(
+                color: AppTheme.cardColor,
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -87,14 +94,16 @@ class _LoginPageState extends State<LoginPage> {
                           decoration: const InputDecoration(
                             labelText: "Email",
                             prefixIcon: Icon(Icons.email),
+                            border: OutlineInputBorder(),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty)
                               return 'Email required';
                             if (!RegExp(
                               r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                            ).hasMatch(value))
+                            ).hasMatch(value)) {
                               return 'Invalid email';
+                            }
                             return null;
                           },
                         ),
@@ -105,6 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                           decoration: const InputDecoration(
                             labelText: "Password",
                             prefixIcon: Icon(Icons.lock),
+                            border: OutlineInputBorder(),
                           ),
                           validator:
                               (value) =>
@@ -115,11 +125,25 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 24),
                         _isLoading
                             ? const CircularProgressIndicator()
-                            : ElevatedButton.icon(
-                              icon: const Icon(Icons.login),
-                              label: const Text("Login"),
-                              onPressed: _handleLogin,
+                            : SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                icon: const Icon(Icons.login),
+                                label: const Text("Login"),
+                                onPressed: _handleLogin,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryColor,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                             ),
+                        const SizedBox(height: 12),
                         TextButton(
                           onPressed:
                               () => Navigator.pushNamed(context, '/register'),
