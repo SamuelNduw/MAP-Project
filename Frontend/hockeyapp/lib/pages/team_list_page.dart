@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hockeyapp/theme/app_theme.dart';
 import '../services/team_service.dart';
 import 'team_detail_page.dart';
 import 'create_team_page.dart';
-import '../theme/app_theme.dart';
 
 class TeamListPage extends StatefulWidget {
   const TeamListPage({super.key});
@@ -35,90 +35,52 @@ class _TeamListPageState extends State<TeamListPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryColor,
-        title: const Text('Teams', style: TextStyle(color: Colors.white)),
-        leadingWidth: 140,
-        leading: Row(
-          children: [
-            const BackButton(color: Colors.white),
-            Padding(
-              padding: const EdgeInsets.only(left: 4),
-              child: Image.asset(
-                'images/logo.png',
-                width: 50,
-                height: 50,
-                fit: BoxFit.contain,
+  Widget build(BuildContext c) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Teams'),
+      leadingWidth: 140,
+      leading: Row(
+        children: [
+          const BackButton(),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Image.asset(
+              'images/logo.png',
+              width: 60,
+              height: 60,
+              fit: BoxFit.contain,
+            )
+          )
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: () async {
+            final created = await Navigator.push<Team>(
+              c,
+              MaterialPageRoute(builder: (_) => const CreateTeamPage())
+            );
+            if (created != null) _load();
+          },
+        )
+      ],
+    ),
+    body: _loading
+      ? const Center(child: CircularProgressIndicator())
+      : ListView.builder(
+          itemCount: _teams.length,
+          itemBuilder: (ctx, i) {
+            final t = _teams[i];
+            return ListTile(
+              title: Text('${t.name} • ${t.shortName}'),
+              subtitle: Text('founded - ${t.foundedYear}'),
+              onTap: () => Navigator.push(
+                ctx,
+                MaterialPageRoute(builder: (_) => TeamDetailPage(id: t.id))
               ),
-            ),
-          ],
+            );
+          },
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final created = await Navigator.push<Team>(
-            context,
-            MaterialPageRoute(builder: (_) => const CreateTeamPage()),
-          );
-          if (created != null) _load();
-        },
-        backgroundColor: AppTheme.accentColor,
-        child: const Icon(Icons.add),
-      ),
-      body:
-          _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _teams.isEmpty
-              ? const Center(child: Text("No teams found"))
-              : ListView.builder(
-                itemCount: _teams.length,
-                itemBuilder: (ctx, i) {
-                  final t = _teams[i];
-                  return Card(
-                    color: Colors.white,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 3,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      title: Text(
-                        '${t.name} • ${t.shortName}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'Founded: ${t.foundedYear}',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                      onTap:
-                          () => Navigator.push(
-                            ctx,
-                            MaterialPageRoute(
-                              builder: (_) => TeamDetailPage(id: t.id),
-                            ),
-                          ),
-                    ),
-                  );
-                },
-              ),
-    );
-  }
+  );
 }

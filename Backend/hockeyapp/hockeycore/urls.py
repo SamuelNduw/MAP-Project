@@ -13,6 +13,7 @@ router.register(r'admin/players', PlayerViewSet)
 router.register(r'admin/managers', ManagerViewSet)
 router.register(r'admin/staff', StaffViewSet)
 router.register(r'admin/fixtures', FixtureViewSet)
+router.register(r'admin/matchevents', MatchEventViewSet)
 
 # Public read-only endpoints
 router.register(r'publicleagues', PublicLeagueViewSet, basename='publicleagues')
@@ -20,6 +21,8 @@ router.register(r'publicteams', PublicTeamViewSet, basename='publicteams')
 router.register(r'publicfixtures', PublicFixtureViewSet, basename='publicfixtures')
 router.register(r'simplefixtures', SimpleFixtureViewSet, basename='simplefixtures')
 router.register(r'publicplayers', PublicPlayerViewSet, basename='publicplayers')
+router.register(r'publicmatchevents', PublicMatchEventViewSet, basename='public-matchevents')
+
 
 
 urlpatterns = [

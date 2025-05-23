@@ -241,30 +241,56 @@ class PublicFixtureDetailSerializer(serializers.ModelSerializer):
         events = MatchEvent.objects.filter(fixture_id=obj).order_by('minute')
         return MatchEventSerializer(events, many=True).data
 
-# Add this serializer if not already present
 class MatchEventSerializer(serializers.ModelSerializer):
-    player = serializers.SerializerMethodField()
-    assisting_player = serializers.SerializerMethodField()
-    
+    player = PlayerSerializer(read_only=True)
+    assisting = PlayerSerializer(read_only=True)
+    sub_in = PlayerSerializer(read_only=True)
+    sub_out = PlayerSerializer(read_only=True)
+
     class Meta:
         model = MatchEvent
-        fields = ['minute', 'event_type', 'player', 'assisting_player']
-    
-    def get_player(self, obj):
-        return {
-            'id': obj.player_id.id,
-            'name': f"{obj.player_id.first_name} {obj.player_id.last_name}",
-            'jersey_number': obj.player_id.jersey_no
-        }
-    
-    def get_assisting_player(self, obj):
-        if obj.assisting_player_id:
-            return {
-                'id': obj.assisting_player_id.id,
-                'name': f"{obj.assisting_player_id.first_name} {obj.assisting_player_id.last_name}",
-                'jersey_number': obj.assisting_player_id.jersey_no
-            }
-        return None
+        fields = [
+            'id', 'fixture', 'minute', 'event_type',
+            'player', 'assisting', 'card_type',
+            'sub_in', 'sub_out'
+        ]
+        read_only_fields = ['id']
+
+    def validate(self, data):
+        et = data.get('event_type')
+        # enforce presence of subtype fields
+        if et == MatchEvent.Action.CARD and not data.get('card_type'):
+            raise serializers.ValidationError("`card_type` is required for CARD events")
+        if et == MatchEvent.Action.SUBSTITUTION:
+            if not data.get('sub_in') or not data.get('sub_out'):
+                raise serializers.ValidationError("`sub_in` and `sub_out` are required for SUBSTITUTION")
+        return data
+
+class MatchEventSerializer2(serializers.ModelSerializer):
+    # player = PlayerSerializer(read_only=True)
+    # assisting = PlayerSerializer(read_only=True)
+    # sub_in = PlayerSerializer(read_only=True)
+    # sub_out = PlayerSerializer(read_only=True)
+
+    class Meta:
+        model = MatchEvent
+        fields = [
+            'id', 'fixture', 'minute', 'event_type',
+            'player', 'assisting', 'card_type',
+            'sub_in', 'sub_out'
+        ]
+        read_only_fields = ['id']
+
+    def validate(self, data):
+        et = data.get('event_type')
+        # enforce presence of subtype fields
+        if et == MatchEvent.Action.CARD and not data.get('card_type'):
+            raise serializers.ValidationError("`card_type` is required for CARD events")
+        if et == MatchEvent.Action.SUBSTITUTION:
+            if not data.get('sub_in') or not data.get('sub_out'):
+                raise serializers.ValidationError("`sub_in` and `sub_out` are required for SUBSTITUTION")
+        return data
+
 
 class PublicTeamSerializer(serializers.ModelSerializer):
     league_name = serializers.CharField(source='league_id.name', read_only=True)

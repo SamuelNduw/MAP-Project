@@ -79,6 +79,11 @@ class PlayerViewSet(AdminOnlyViewSet):
     serializer_class = PlayerSerializer
     permission_classes = [IsAdmin]
 
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = {
+        'team_id': ['exact'],
+    }
+
 class ManagerViewSet(ReadOnlyViewSet):
     queryset = Manager.objects.all()
     serializer_class = ManagerSerializer
@@ -250,6 +255,23 @@ class SimpleFixtureViewSet(ReadOnlyModelViewSet):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
+    
+class MatchEventViewSet(AdminOnlyViewSet):
+    queryset = MatchEvent.objects.all().select_related(
+        'fixture', 'player', 'assisting', 'sub_in', 'sub_out'
+    )
+    serializer_class = MatchEventSerializer2
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['fixture', 'event_type', 'player']
+
+class PublicMatchEventViewSet(ReadOnlyViewSet):
+    queryset = MatchEvent.objects.all().select_related(
+        'fixture', 'player', 'assisting', 'sub_in', 'sub_out'
+    )
+    serializer_class = MatchEventSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['fixture', 'event_type', 'player']
 
 class PublicLeagueViewSet(ReadOnlyViewSet):
     queryset = League.objects.all()

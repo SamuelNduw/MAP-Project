@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hockeyapp/pages/login_page.dart';
-import '../theme/app_theme.dart';
-// import 'package:hockeyapp/pages/league_list_page.dart';
-// import 'team_list_page.dart';
+import 'league_list_page.dart';
+import 'team_list_page.dart';
+// Import any other admin tab pages here
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -31,7 +31,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         currentIndex: _currentIndex,
         items: _navItems,
         onTap: (i) => setState(() => _currentIndex = i),
-        selectedItemColor: AppTheme.accentColor,
+        selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         backgroundColor: AppTheme.navBarBackgroundColor,
         type: BottomNavigationBarType.fixed,
@@ -55,25 +55,18 @@ class DashboardTab extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () => Navigator.pushNamed(context, route),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 38, color: AppTheme.accentColor),
-              const SizedBox(height: 10),
-              Text(title, style: AppTheme.cardTextStyle),
-            ],
-          ),
-        ),
-      ),
-    );
+        borderRadius: BorderRadius.circular(8),
+        child: Center(
+            child: Text(title, style: const TextStyle(fontSize: 16)),
+          )
+        )
+      );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppTheme.primaryColor,
         elevation: 1,
@@ -94,27 +87,12 @@ class DashboardTab extends StatelessWidget {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           children: [
-            _buildTile(
-              context,
-              'Leagues',
-              Icons.emoji_events,
-              '/admin/leagues',
-            ),
-            _buildTile(context, 'Teams', Icons.group, '/admin/teams'),
-            _buildTile(
-              context,
-              'Players',
-              Icons.sports_hockey,
-              '/admin/players',
-            ),
-            _buildTile(context, 'Managers', Icons.person, '/admin/managers'),
-            _buildTile(context, 'Staff', Icons.badge, '/admin/staff'),
-            _buildTile(
-              context,
-              'Fixtures',
-              Icons.calendar_month,
-              '/admin/fixtures',
-            ),
+            _buildTile(context, 'Leagues', '/admin/leagues'),
+            _buildTile(context, 'Teams', '/admin/teams'),
+            _buildTile(context, 'Players', '/admin/players'),
+            _buildTile(context, 'Managers', '/admin/managers'),
+            _buildTile(context, 'Staff', '/admin/staff'),
+            _buildTile(context, 'Fixtures', '/admin/fixtures'),
           ],
         ),
       ),
@@ -122,14 +100,42 @@ class DashboardTab extends StatelessWidget {
   }
 }
 
+/// Placeholder for Admin Profile/Settings
 class AdminProfileTab extends StatelessWidget {
   const AdminProfileTab({super.key});
+
+  @override
+  State<AdminProfileTab> createState() => _AdminProfileTabState();
+}
+
+class _AdminProfileTabState extends State<AdminProfileTab> {
+  String? _email;
+  String? _fullName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEmailFromToken();
+  }
+
+  Future<void> _loadEmailFromToken() async {
+    const storage = FlutterSecureStorage();
+    final token = await storage.read(key: 'accessToken');
+    if (token != null) {
+      final decoded = JwtDecoder.decode(token);
+      setState(() {
+        _email = decoded['email'] as String?;
+        _fullName = decoded['full_name'] as String?;
+      });
+    }
+  }
 
   Future<void> _handleLogout(BuildContext context) async {
     const storage = FlutterSecureStorage();
     await storage.delete(key: 'accessToken');
     await storage.delete(key: 'refreshToken');
 
+    // Push PublicHomePage and clear the navigation stack
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,
@@ -154,55 +160,34 @@ class AdminProfileTab extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed:
-                () => showDialog(
-                  context: context,
-                  builder: (BuildContext dialogContext) {
-                    return AlertDialog(
-                      title: const Text('Confirm Logout'),
-                      content: const Text('Are you sure you want to logout?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(dialogContext).pop(),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            Navigator.of(dialogContext).pop();
-                            await _handleLogout(context);
-                          },
-                          child: const Text('Logout'),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-          ),
+            icon: const Icon(Icons.logout),
+            onPressed: () => showDialog(
+              context: context,
+              builder: (BuildContext dialogContext){
+                return AlertDialog(
+                  title: const Text('Confirm Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(), 
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.of(dialogContext).pop();
+                        await _handleLogout(context);
+                      }, 
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                );
+              }
+            ),
+          )
         ],
       ),
       body: Center(
-        child: Card(
-          color: AppTheme.cardColor,
-          margin: const EdgeInsets.all(20),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 6,
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.admin_panel_settings, size: 64, color: Colors.blue),
-                SizedBox(height: 16),
-                Text("Admin", style: AppTheme.titleTextStyle),
-                SizedBox(height: 8),
-                Text("admin@hockey.na", style: AppTheme.subtitleTextStyle),
-              ],
-            ),
-          ),
-        ),
+        child: Text('Profile Page')
       ),
     );
   }

@@ -27,6 +27,7 @@ class _SignupPageState extends State<SignupPage> {
         _passCtrl.text.trim(),
       );
       if (!context.mounted) return;
+      // After signup, go back to login:
       if (role == 'ADMIN') {
         Navigator.pushReplacementNamed(context, '/admin');
       } else {
@@ -47,32 +48,25 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppTheme.primaryColor,
-        title: const Text('Sign Up', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
+      appBar: AppBar(title: const Text('Sign Up')),
       body: SingleChildScrollView(
         child: Align(
           alignment: Alignment.topCenter,
           child: Padding(
-            padding: const EdgeInsets.only(top: 40),
+            padding: const EdgeInsets.only(top: 60),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset('images/logo.png', width: 180, height: 180),
+                Image.asset(
+                  'images/logo.png',
+                  width: 220,
+                  height: 220,
+                ),
                 const SizedBox(height: 24),
                 Card(
-                  color: AppTheme.cardColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                   margin: const EdgeInsets.symmetric(horizontal: 16),
-                  elevation: 4,
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(16),
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -80,67 +74,35 @@ class _SignupPageState extends State<SignupPage> {
                         children: [
                           TextFormField(
                             controller: _nameCtrl,
-                            decoration: const InputDecoration(
-                              labelText: 'Full Name',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator:
-                                (v) =>
-                                    v != null && v.isNotEmpty
-                                        ? null
-                                        : 'Name required',
+                            decoration: const InputDecoration(labelText: 'Full Name'),
+                            validator: (v) => v != null && v.isNotEmpty ? null : 'Name required',
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           TextFormField(
                             controller: _emailCtrl,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              border: OutlineInputBorder(),
-                            ),
+                            decoration: const InputDecoration(labelText: 'Email'),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
-                                return 'Email required';
-                              final regex = RegExp(
-                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                              );
+                              if (v == null || v.isEmpty) return 'Email required';
+                              final regex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                               return regex.hasMatch(v) ? null : 'Invalid email';
                             },
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           TextFormField(
                             controller: _passCtrl,
                             obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Password',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator:
-                                (v) =>
-                                    v != null && v.length >= 6
-                                        ? null
-                                        : 'Min 6 characters',
+                            decoration: const InputDecoration(labelText: 'Password'),
+                            validator: (v) =>
+                                v != null && v.length >= 6 ? null : 'Min 6 characters',
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
                           _isLoading
                               ? const CircularProgressIndicator()
-                              : SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
+                              : ElevatedButton(
                                   onPressed: _handleSignup,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.primaryColor,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 14,
-                                    ),
-                                    textStyle: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
                                   child: const Text('Sign Up'),
                                 ),
-                              ),
                         ],
                       ),
                     ),

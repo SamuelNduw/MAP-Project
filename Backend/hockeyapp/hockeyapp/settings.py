@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'hockeycore',
     'corsheaders',
-    'django_filters'
+    'django_filters',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -78,6 +79,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'hockeyapp.wsgi.application'
+
+ASGI_APPLICATION = 'hockeyapp.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 
 # Database
@@ -120,6 +129,9 @@ REST_FRAMEWORK = {
     'DEFUALT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication'
     ),
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
     
 }
 

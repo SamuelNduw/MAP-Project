@@ -19,19 +19,27 @@ class AuthService {
         'email': email,
         'password': password,
       });
-      // If tokens are returned on register, store them:
-      if (response.data.containsKey('access')) {
-        final accessToken = response.data['access'];
-        final refreshToken = response.data['refresh'];
 
-        await _storage.write(key: 'accessToken', value: accessToken);
-        await _storage.write(key: 'refreshToken', value: refreshToken);
+      final data = response.data as Map<String, dynamic>;
 
-        final claims = JwtDecoder.decode(accessToken);
-        return claims['role'];
-      } else{
-        throw Exception('Registration succeeded but no tokens returned');
+      // Extract and store tokens
+      final accessToken = data['access'] as String?;
+      final refreshToken = data['refresh'] as String?;
+      if (accessToken == null || refreshToken == null) {
+        throw Exception('Registration succeeded but tokens missing');
       }
+
+      await _storage.write(key: 'accessToken', value: accessToken);
+      await _storage.write(key: 'refreshToken', value: refreshToken);
+
+      // Extract role from user object
+      final user = data['user'] as Map<String, dynamic>?;
+      final role = user?['role'] as String?;
+      if (role == null) {
+        throw Exception('Registration succeeded but role missing');
+      }
+
+      return role;
     } on DioException catch (e) {
       throw Exception(e.response?.data['detail'] ?? 'Registration failed');
     }

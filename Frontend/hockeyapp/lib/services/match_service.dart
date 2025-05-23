@@ -17,6 +17,7 @@ class Match {
   final int homeScore;
   final int awayScore;
   final String status;
+  final String venue;
 
   Match({
     required this.id,
@@ -31,6 +32,7 @@ class Match {
     required this.homeScore,
     required this.awayScore,
     required this.status,
+    required this.venue,
   });
 
   String get scoreDisplay => '$homeScore–$awayScore';
@@ -49,6 +51,7 @@ class Match {
       awayLogo: json['away_team_logo_url'] as String,
       homeScore: json['home_team_score'] as int,
       awayScore: json['away_team_score'] as int,
+      venue: json['venue'] as String,
     );
   }
 }
@@ -60,6 +63,14 @@ class MatchService {
   Future<void> _attachToken() async {
     final token = await _storage.read(key: 'accessToken');
     if (token != null) _dio.options.headers['Authorization'] = 'Bearer $token';
+  }
+
+  Future<List<Map<String, dynamic>>> getPastEvents(int fixtureId) async {
+    await _attachToken();
+    final resp = await _dio.get('/publicmatchevents/', queryParameters: {
+      'fixture': fixtureId,
+    });
+    return List<Map<String, dynamic>>.from(resp.data);
   }
 
   Future<List<Match>> listFixtures() async {
@@ -74,4 +85,18 @@ class MatchService {
     final resp = await _dio.get('simplefixtures/$id/');
     return Match.fromJson(resp.data as Map<String, dynamic>);
   }
+
+  Future<void> updateFixture(int id, {required int homeScore, required int awayScore, required String status}) async {
+    await _attachToken();
+    final resp = await _dio.post('/admin/fixtures/$id/update_score/', data: {
+      'home_team_score': homeScore,
+      'away_team_score': awayScore,
+      'status': status,
+    });
+    if (resp.statusCode != 200 && resp.statusCode != 204){
+      throw Exception('Failed to update fixture: ${resp.statusCode}');
+    }
+  }
+
+
 }
