@@ -1,7 +1,7 @@
-// lib/pages/signup_page.dart
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'public_home_page.dart';
+import '../theme/app_theme.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -27,7 +27,7 @@ class _SignupPageState extends State<SignupPage> {
         _passCtrl.text.trim(),
       );
       if (!context.mounted) return;
-      // After signup, go back to login:
+
       if (role == 'ADMIN') {
         Navigator.pushReplacementNamed(context, '/admin');
       } else {
@@ -48,72 +48,107 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
+      backgroundColor: AppTheme.backgroundColor,
       body: SingleChildScrollView(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 60),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'images/logo.png',
-                  width: 220,
-                  height: 220,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48),
+          child: Column(
+            children: [
+              Image.asset('images/logo.png', width: 160, height: 160),
+              const SizedBox(height: 24),
+              const Text(
+                "Create Account",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryColor,
                 ),
-                const SizedBox(height: 24),
-                Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextFormField(
-                            controller: _nameCtrl,
-                            decoration: const InputDecoration(labelText: 'Full Name'),
-                            validator: (v) => v != null && v.isNotEmpty ? null : 'Name required',
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "Register to get started",
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+              const SizedBox(height: 32),
+              Card(
+                color: AppTheme.cardColor,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _nameCtrl,
+                          decoration: const InputDecoration(
+                            labelText: 'Full Name',
+                            prefixIcon: Icon(Icons.person),
                           ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: _emailCtrl,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(labelText: 'Email'),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Email required';
-                              final regex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                              return regex.hasMatch(v) ? null : 'Invalid email';
-                            },
+                          validator: (v) =>
+                              v != null && v.isNotEmpty ? null : 'Name required',
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _emailCtrl,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            labelText: "Email",
+                            prefixIcon: Icon(Icons.email),
                           ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: _passCtrl,
-                            obscureText: true,
-                            decoration: const InputDecoration(labelText: 'Password'),
-                            validator: (v) =>
-                                v != null && v.length >= 6 ? null : 'Min 6 characters',
+                          validator: (value) {
+                            if (value == null || value.isEmpty)
+                              return 'Email required';
+                            if (!RegExp(
+                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                            ).hasMatch(value))
+                              return 'Invalid email';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _passCtrl,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: "Password",
+                            prefixIcon: Icon(Icons.lock),
                           ),
-                          const SizedBox(height: 20),
-                          _isLoading
-                              ? const CircularProgressIndicator()
-                              : ElevatedButton(
-                                  onPressed: _handleSignup,
-                                  child: const Text('Sign Up'),
+                          validator: (v) =>
+                              v != null && v.length >= 6 ? null : 'Min 6 characters',
+                        ),
+                        const SizedBox(height: 24),
+                        _isLoading
+                            ? const CircularProgressIndicator()
+                            : ElevatedButton.icon(
+                                icon: const Icon(Icons.person_add),
+                                label: const Text("Sign Up"),
+                                onPressed: _handleSignup,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryColor,
+                                  foregroundColor: AppTheme.backgroundColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
                                 ),
-                        ],
-                      ),
+                              ),
+                        TextButton(
+                          onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                          child: const Text('Already have an account? Log in',
+                              style: TextStyle(color: AppTheme.primaryColor)),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-
     );
   }
 }
