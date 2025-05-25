@@ -1,4 +1,3 @@
-// fixture_detail_page.dart
 import 'package:flutter/material.dart';
 import '../services/match_service.dart';
 import 'package:dio/dio.dart';
@@ -33,6 +32,11 @@ class _FixtureDetailPageState extends State<FixtureDetailPage> {
   String? _selectedCardType;
   int? _selectedTeamId;
 
+  List<Map<String, dynamic>> _events = [];
+  Map<int, String> _playerNames = {};
+  bool _loadingEvents = false;
+
+
   final List<String> categories = [
     'Scoring',
     'Penalties',
@@ -49,6 +53,7 @@ class _FixtureDetailPageState extends State<FixtureDetailPage> {
   void initState() {
     super.initState();
     _loadFixtureData();
+    _loadMatchEvents();
   }
 
   @override
@@ -89,6 +94,8 @@ class _FixtureDetailPageState extends State<FixtureDetailPage> {
 
       _homePlayers = List<Map<String, dynamic>>.from(playerResp1.data);
       _awayPlayers = List<Map<String, dynamic>>.from(playerResp2.data);
+
+      _buildPlayerNamesMap();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load fixture or players: $e')),
@@ -98,16 +105,34 @@ class _FixtureDetailPageState extends State<FixtureDetailPage> {
     }
   }
 
+  Future<void> _loadMatchEvents() async {
+    setState(() => _loadingEvents = true);
+    try {
+      final dio = await _createAuthDio();
+      final resp = await dio.get('/admin/matchevents/', queryParameters: {
+          'fixture': widget.fixtureId,
+      });
+      _events = List<Map<String, dynamic>>.from(resp.data);
+      _events.sort((a, b) => b['minute'].compareTo(a['minute']));
+    } catch(e){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load events: $e')),
+      );
+    } finally {
+      setState(() => _loadingEvents = false);
+    }
+  }
+
   Future<void> _submitMatchEvent() async {
     final minuteStr = _minuteCtrl.text.trim();
-final minute = int.tryParse(minuteStr);
+    final minute = int.tryParse(minuteStr);
 
-if (minute == null || minute < 0) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Please enter a valid positive minute')),
-  );
-  return;
-}
+    if (minute == null || minute < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid positive minute')),
+      );
+      return;
+    }
 
     final dio = await _createAuthDio();
     final data = {
@@ -149,6 +174,50 @@ if (minute == null || minute < 0) {
     }
   }
 
+  Future<void> _deleteEvent(int eventId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content: const Text('Are you sure you want to delete this event?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final dio = await _createAuthDio();
+      await dio.delete('/admin/matchevents/$eventId/');
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Event deleted')));
+      await _loadMatchEvents();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete event: $e')));
+    }
+  }
+
+  Future<void> _updateEvent(int eventId, Map<String, dynamic> updateData) async {
+    try {
+      final dio = await _createAuthDio();
+      await dio.patch('/admin/matchevents/$eventId/', data: updateData);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Event updated')));
+      await _loadMatchEvents();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update event: $e')));
+    }
+  }
+
+  void _buildPlayerNamesMap() {
+    final allPlayers = [..._homePlayers, ..._awayPlayers];
+    _playerNames = {
+      for (var p in allPlayers) p['id'] as int: '${p['first_name']} ${p['last_name']}'
+    };
+  }
+
+
   Future<void> _submit() async {
     setState(() => _loading = true);
     try {
@@ -173,7 +242,7 @@ if (minute == null || minute < 0) {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text('Fixture ${widget.fixtureId}'),
@@ -181,13 +250,15 @@ if (minute == null || minute < 0) {
             tabs: [
               Tab(text: 'General'),
               Tab(text: 'Match Event'),
+              Tab(text: 'Manage Events')
             ],
           ),
         ),
         body: TabBarView(
           children: [
             _buildGeneralTab(),
-            _buildMatchEventTab()
+            _buildMatchEventTab(),
+            _buildManageEventsTab()
           ],
         ),
       ),
@@ -308,6 +379,181 @@ if (minute == null || minute < 0) {
     return TextFormField(decoration: InputDecoration(labelText: label));
   }
 
+  void _showEditEventDialog(Map<String, dynamic> event) {
+    final _minuteEditCtrl = TextEditingController(text: event['minute'].toString());
+
+    String eventType = event['event_type'] ?? '';
+    int? playerId = event['player'];
+    int? assistingId = event['assisting'];
+    String? cardType = event['card_type'];
+    int? subInId = event['sub_in'];
+    int? subOutId = event['sub_out'];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            // For player dropdown items, combine _homePlayers and _awayPlayers
+            final allPlayers = [..._homePlayers, ..._awayPlayers];
+
+            DropdownMenuItem<int?> buildPlayerDropdownItem(int? val) {
+              Map<String, dynamic>? player = allPlayers.cast<Map<String, dynamic>?>().firstWhere(
+                (p) => p != null && p['id'] == val,
+                orElse: () => null,
+              );
+              final text = player != null
+                  ? '${player['first_name']} ${player['last_name']}'
+                  : 'None';
+              return DropdownMenuItem(value: val, child: Text(text));
+            }
+
+            return AlertDialog(
+              title: Text('Edit Event ID: ${event['id']}'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Minute input
+                    TextFormField(
+                      controller: _minuteEditCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Minute'),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Show event type (disabled, no edit)
+                    DropdownButtonFormField<String>(
+                      value: eventType,
+                      decoration: const InputDecoration(labelText: 'Event Type'),
+                      items: ['goal', 'card', 'substitution', 'injury']
+                          .map((e) => DropdownMenuItem(
+                                value: e,
+                                child: Text(e.toUpperCase()),
+                              ))
+                          .toList(),
+                      onChanged: null, // Disabled editing event type to keep complexity low
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Player dropdown
+                    DropdownButtonFormField<int?>(
+                      value: playerId,
+                      decoration: const InputDecoration(labelText: 'Player'),
+                      items: allPlayers.map<DropdownMenuItem<int?>>((p) {
+                        return DropdownMenuItem<int?>(
+                          value: p['id'] as int,
+                          child: Text('${p['first_name']} ${p['last_name']}'),
+                        );
+                      }).toList(),
+                      onChanged: (val) => setStateDialog(() => playerId = val),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Conditional fields per event type:
+
+                    if (eventType == 'goal') ...[
+                      DropdownButtonFormField<int?>(
+                        value: assistingId,
+                        decoration: const InputDecoration(labelText: 'Assistant (optional)'),
+                        items: [
+                          const DropdownMenuItem(value: null, child: Text('None')),
+                          ...allPlayers.map((p) => DropdownMenuItem<int?>(
+                                value: p['id'] as int,
+                                child: Text('${p['first_name']} ${p['last_name']}'),
+                              )),
+                        ],
+                        onChanged: (val) => setStateDialog(() => assistingId = val),
+                      ),
+                    ] else if (eventType == 'card') ...[
+                      DropdownButtonFormField<String>(
+                        value: cardType,
+                        decoration: const InputDecoration(labelText: 'Card Type'),
+                        items: ['green', 'yellow', 'red']
+                            .map((type) => DropdownMenuItem(
+                                  value: type,
+                                  child: Text(type[0].toUpperCase() + type.substring(1)),
+                                ))
+                            .toList(),
+                        onChanged: (val) => setStateDialog(() => cardType = val),
+                      ),
+                    ] else if (eventType == 'substitution') ...[
+                      DropdownButtonFormField<int?>(
+                        value: subInId,
+                        decoration: const InputDecoration(labelText: 'Player In'),
+                        items: allPlayers.map((p) => DropdownMenuItem<int?>(
+                              value: p['id'] as int,
+                              child: Text('${p['first_name']} ${p['last_name']}'),
+                            )).toList(),
+                        onChanged: (val) => setStateDialog(() => subInId = val),
+                      ),
+                      DropdownButtonFormField<int?>(
+                        value: subOutId,
+                        decoration: const InputDecoration(labelText: 'Player Out'),
+                        items: allPlayers.map((p) => DropdownMenuItem<int?>(
+                              value: p['id'] as int,
+                              child: Text('${p['first_name']} ${p['last_name']}'),
+                            )).toList(),
+                        onChanged: (val) => setStateDialog(() => subOutId = val),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final minute = int.tryParse(_minuteEditCtrl.text.trim());
+                    if (minute == null || minute < 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid minute')));
+                      return;
+                    }
+                    if (playerId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Player is required')));
+                      return;
+                    }
+                    if (eventType == 'card' && (cardType == null || cardType!.isEmpty)) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Card type is required for card events')));
+                      return;
+                    }
+                    if (eventType == 'substitution' && (subInId == null || subOutId == null)) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Both Player In and Player Out are required for substitution')));
+                      return;
+                    }
+
+                    // Prepare data payload for update
+                    final updateData = {
+                      'minute': minute,
+                      'player': playerId,
+                      'event_type': eventType,
+                      'assisting': assistingId,
+                      'card_type': cardType,
+                      'sub_in': subInId,
+                      'sub_out': subOutId,
+                      'fixture': widget.fixtureId,
+                    };
+
+                    // Remove null values to avoid API errors
+                    updateData.removeWhere((key, value) => value == null);
+
+                    Navigator.pop(context); // Close dialog before update
+                    await _updateEvent(event['id'], updateData);
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
   Widget _buildGeneralTab() {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
@@ -414,6 +660,62 @@ if (minute == null || minute < 0) {
       ),
     );
   }
+
+  Widget _buildManageEventsTab() {
+    if (_loadingEvents) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_events.isEmpty) {
+      return const Center(child: Text('No events available'));
+    }
+
+    
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _events.length,
+      itemBuilder: (context, index) {
+        final event = _events[index];
+        final playerName = _playerNames[event['player']] ?? 'Unknown';
+        final assistingName = event['assisting'] != null ? _playerNames[event['assisting']] ?? 'Unknown' : '';
+        final subInName = event['sub_in'] != null ? _playerNames[event['sub_in']] ?? 'Unknown' : '';
+        final subOutName = event['sub_out'] != null ? _playerNames[event['sub_out']] ?? 'Unknown' : '';
+
+        String subtitleText = 'Player: $playerName';
+        if (event['event_type'] == 'goal' && assistingName.isNotEmpty) {
+          subtitleText += '\nAssist: $assistingName';
+        } else if (event['event_type'] == 'substitution') {
+          subtitleText += '\nIn: $subInName, Out: $subOutName';
+        } else if (event['event_type'] == 'card') {
+          subtitleText += '\nCard: ${event['card_type'] ?? ''}';
+        }
+
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            title: Text("${event['event_type']?.toUpperCase() ?? ''} - ${event['minute']}'"),
+            subtitle: Text(subtitleText),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  onPressed: () => _showEditEventDialog(event),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _deleteEvent(event['id']),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
 
 
 }

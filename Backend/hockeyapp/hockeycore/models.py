@@ -266,7 +266,7 @@ class MatchEvent(models.Model):
             },
             'time': self.minute,
         }
-        # add type-specific extras:
+        
         if self.event_type == MatchEvent.Action.GOAL:
             payload.update({
                 'assistant': (

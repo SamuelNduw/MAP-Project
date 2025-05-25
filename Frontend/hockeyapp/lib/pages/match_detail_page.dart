@@ -31,15 +31,12 @@ class _MatchDetailPageState extends State<MatchDetailPage> {
       final data = jsonDecode(message);
       print(data);
       setState(() {
-        if (data.containsKey('score')){
+        if(data['type'] == 'score_update'){
           _liveScore = data['score'];
-        } 
-        if(data.containsKey('status')){
           _liveStatus = data['status'];
+        } else{
+          _events.insert(0, data);
         }
-
-       _events.insert(0, data);
-
       });
     });
   }
