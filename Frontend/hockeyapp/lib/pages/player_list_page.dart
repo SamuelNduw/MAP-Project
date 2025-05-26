@@ -74,7 +74,7 @@ class _PlayerListPageState extends State<PlayerListPage> {
         leadingWidth: 140,
         leading: Row(
           children: [
-            const BackButton(),
+            const BackButton(color: Colors.white),
             Padding(
               padding: const EdgeInsets.only(left: 4),
               child: Image.asset(

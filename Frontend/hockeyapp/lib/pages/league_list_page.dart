@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hockeyapp/theme/app_theme.dart';
 import '../services/league_service.dart';
 import 'league_detail_page.dart';
 import 'create_league_page.dart';
@@ -46,11 +47,12 @@ class _LeagueListPageState extends State<LeagueListPage> {
   @override
   Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(
-      title: const Text('Leagues'),
+      title: const Text('Leagues', style: TextStyle(color: Colors.white)),
+      backgroundColor: AppTheme.primaryColor,
       leadingWidth: 140,
       leading: Row(
         children: [
-          const BackButton(),
+          const BackButton(color: Colors.white),
           Padding(
             padding: const EdgeInsets.only(left: 4),
             child: Image.asset(
@@ -64,7 +66,7 @@ class _LeagueListPageState extends State<LeagueListPage> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.add),
+          icon: const Icon(Icons.add, color: Colors.white),
           onPressed: () async {
             final created = await Navigator.push<League>(
               c,

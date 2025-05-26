@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:hockeyapp/config.dart';
+import 'package:hockeyapp/pages/match_detail_page.dart';
 
 class PublicLeagueDetail extends StatefulWidget {
   final int id;
@@ -188,53 +189,62 @@ class _PublicLeagueDetailState extends State<PublicLeagueDetail> with SingleTick
       final venue = fx['venue'] ?? 'Unknown venue';
       final status = fx['status'] ?? 'Unknown status';
 
-      return Card(
-        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              // Row with logos and names
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Home logo
-                  if (homeLogo != null)
-                    Image.network(
-                      homeLogo,
-                      width: 48,
-                      height: 48,
-                      errorBuilder: (_, __, ___) =>
-                          const Icon(Icons.broken_image, size: 32),
-                    ),
-                  const SizedBox(width: 8),
-                  Text(home, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 8),
-                  Text(score, style: const TextStyle(fontSize: 16,)),
-                  const SizedBox(width: 8),
-                  Text(away, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 8),
-                  // Away logo
-                  if (awayLogo != null)
-                    Image.network(
-                      awayLogo,
-                      width: 48,
-                      height: 48,
-                      errorBuilder: (_, __, ___) =>
-                          const Icon(Icons.broken_image, size: 32),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const SizedBox(height: 4),
-              Text(
-                '$status $date at $venue',
-                style: const TextStyle(color: Colors.blueGrey),
-              ),
-            ],
+      return InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MatchDetailPage(fixtureId: fx['id']),
+            ),
+          );
+        },
+        child: Card(
+          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                // Row with logos and names
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (homeLogo != null)
+                      Image.network(
+                        homeLogo,
+                        width: 48,
+                        height: 48,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.broken_image, size: 32),
+                      ),
+                    const SizedBox(width: 8),
+                    Text(home, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 8),
+                    Text(score, style: const TextStyle(fontSize: 16)),
+                    const SizedBox(width: 8),
+                    Text(away, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 8),
+                    if (awayLogo != null)
+                      Image.network(
+                        awayLogo,
+                        width: 48,
+                        height: 48,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.broken_image, size: 32),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const SizedBox(height: 4),
+                Text(
+                  '$status $date at $venue',
+                  style: const TextStyle(color: Colors.blueGrey),
+                ),
+              ],
+            ),
           ),
         ),
       );
+
     },
   );
 }
