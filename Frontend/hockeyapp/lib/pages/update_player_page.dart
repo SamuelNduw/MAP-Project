@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hockeyapp/services/player_service.dart';
 import 'package:hockeyapp/services/team_service.dart';
- // if you have a Player model file
+import 'package:hockeyapp/theme/app_theme.dart';
 
 class UpdatePlayerPage extends StatefulWidget {
   final Player player;
@@ -82,7 +82,25 @@ class _UpdatePlayerPageState extends State<UpdatePlayerPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Update Player')),
+    appBar: AppBar(
+      title: const Text('Update Player', style: TextStyle(color: Colors.white)),
+      backgroundColor: AppTheme.primaryColor,
+      leadingWidth: 140,
+      leading: Row(
+        children: [
+          const BackButton(color: Colors.white,),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Image.asset(
+              'images/logo.png',
+              width: 60,
+              height: 60,
+              fit: BoxFit.contain,
+            )
+          )
+        ],
+      )
+    ),
     body: _loading
         ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView(

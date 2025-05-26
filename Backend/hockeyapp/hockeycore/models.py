@@ -76,6 +76,13 @@ class Team(models.Model):
     short_name = models.CharField(max_length=10)
     logo_url = models.URLField(blank=True)
     founded_year = models.IntegerField()
+    manager = models.OneToOneField(
+        'Manager',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='managed_team'
+    )
 
     def __str__(self):
         return self.name
@@ -95,8 +102,8 @@ class Manager(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=20, blank=True)
-    email = models.EmailField(unique=True)
-    team_id = models.ForeignKey(Team, on_delete=models.CASCADE)
+    email = models.EmailField(unique=True, blank=True, null=True)
+    photo = models.URLField(blank=True, default="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

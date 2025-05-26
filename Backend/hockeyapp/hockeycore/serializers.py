@@ -38,7 +38,21 @@ class LeagueSerializer(serializers.ModelSerializer):
         model = League
         fields = '__all__'
 
+class ManagerSerializer(serializers.ModelSerializer):
+    managed_team = serializers.PrimaryKeyRelatedField(read_only=True)
+    class Meta:
+        model = Manager
+        fields = '__all__'
+
 class TeamSerializer(serializers.ModelSerializer):
+    manager = ManagerSerializer(read_only=True)
+    manager_id = serializers.PrimaryKeyRelatedField(
+        queryset=Manager.objects.all(),
+        source='manager',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
     class Meta:
         model = Team
         fields = '__all__'
@@ -64,10 +78,6 @@ class PlayerSerializer(serializers.ModelSerializer):
             'photo': {'required': False},
         }
 
-class ManagerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Manager
-        fields = '__all__'
 
 class StaffSerializer(serializers.ModelSerializer):
     class Meta:

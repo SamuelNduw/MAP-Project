@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hockeyapp/pages/create_player_page.dart';
 import 'package:hockeyapp/pages/update_player_page.dart';
 import 'package:hockeyapp/services/player_service.dart';
+import 'package:hockeyapp/theme/app_theme.dart';
 
 class PlayerListPage extends StatefulWidget {
   const PlayerListPage({super.key});
@@ -68,10 +69,26 @@ class _PlayerListPageState extends State<PlayerListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Players'),
+        title: const Text('Players', style: TextStyle(color: Colors.white),),
+        backgroundColor: AppTheme.primaryColor,
+        leadingWidth: 140,
+        leading: Row(
+          children: [
+            const BackButton(),
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Image.asset(
+                'images/logo.png',
+                width: 60,
+                height: 60,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add, color: Colors.white),
             onPressed: () async {
               final result = await Navigator.push<bool>(
                 context,

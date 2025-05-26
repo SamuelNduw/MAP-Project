@@ -22,6 +22,7 @@ router.register(r'publicfixtures', PublicFixtureViewSet, basename='publicfixture
 router.register(r'simplefixtures', SimpleFixtureViewSet, basename='simplefixtures')
 router.register(r'publicplayers', PublicPlayerViewSet, basename='publicplayers')
 router.register(r'publicmatchevents', PublicMatchEventViewSet, basename='public-matchevents')
+router.register(r'publicmanagers', PublicManagerViewSet, basename='publicmanagers')
 
 
 

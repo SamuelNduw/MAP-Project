@@ -373,12 +373,6 @@ class _FixtureDetailPageState extends State<FixtureDetailPage> {
     );
   }
 
-
-
-  Widget _textField(String label) {
-    return TextFormField(decoration: InputDecoration(labelText: label));
-  }
-
   void _showEditEventDialog(Map<String, dynamic> event) {
     final _minuteEditCtrl = TextEditingController(text: event['minute'].toString());
 

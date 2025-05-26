@@ -1,18 +1,20 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hockeyapp/config.dart';
-// import 'league_service.dart';
+import 'package:hockeyapp/services/coach_service.dart' as coach_service;
 
 class Team {
   final int id;
   final String name, shortName, logoUrl; 
   final int foundedYear;
+  final coach_service.Coach? manager;
   Team({
     required this.id,
     required this.name,
     required this.shortName,
     required this.logoUrl,
     required this.foundedYear,
+    this.manager,
   });
   factory Team.fromJson(Map<String, dynamic> j) => Team(
     id: j['id'],
@@ -20,8 +22,28 @@ class Team {
     shortName: j['short_name'],
     logoUrl: j['logo_url'] ?? '',
     foundedYear: j['founded_year'],
+    manager: j['manager'] != null ? coach_service.Coach.fromJson(j['manager']) : null,
   );
 }
+
+// class Coach {
+//   final int id;
+//   final String firstName;
+//   final String lastName;
+
+//   Coach({
+//     required this.id,
+//     required this.firstName,
+//     required this.lastName,
+//   });
+
+//   factory Coach.fromJson(Map<String, dynamic> j) => Coach(
+//         id: j['id'],
+//         firstName: j['first_name'],
+//         lastName: j['last_name'],
+//       );
+// }
+
 
 class TeamService {
   final _storage = const FlutterSecureStorage();
@@ -80,6 +102,21 @@ class TeamService {
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
       print('Error updating team: $e');
+      return false;
+    }
+  }
+
+  Future<bool> assignCoach(int teamId, int? coachId) async {
+    await _attachToken();
+    final data = {
+      // pass null to unassign
+      'manager': coachId,
+    };
+    try {
+      final response = await _dio.patch('/teams/$teamId/', data: data);
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      print('Error assigning coach: $e');
       return false;
     }
   }

@@ -102,9 +102,9 @@ class DashboardTab extends StatelessWidget {
           crossAxisSpacing: 16,
           children: [
             _buildTile(context, 'Leagues', Icons.emoji_events, '/admin/leagues'),
-            _buildTile(context, 'Teams', Icons.group, '/admin/teams'),
-            _buildTile(context, 'Players', Icons.sports_hockey, '/admin/players'),
-            // _buildTile(context, 'Managers', Icons.person, '/admin/managers'),
+            _buildTile(context, 'Teams', Icons.sports_hockey, '/admin/teams'),
+            _buildTile(context, 'Players', Icons.group, '/admin/players'),
+            _buildTile(context, 'Coaches', Icons.person, '/admin/coaches'),
             // _buildTile(context, 'Staff', Icons.badge, '/admin/staff'),
             _buildTile(context, 'Fixtures', Icons.calendar_month, '/admin/fixtures'),
           ],

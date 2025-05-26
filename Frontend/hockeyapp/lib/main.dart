@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hockeyapp/pages/coach_list_page.dart';
 import 'package:hockeyapp/pages/create_team_page.dart';
 import 'package:hockeyapp/pages/matches_page.dart';
 import 'package:hockeyapp/pages/team_list_page.dart';
@@ -39,7 +40,8 @@ class MyApp extends StatelessWidget {
         '/admin/teams/create': (_) => const CreateTeamPage(),
         '/admin/players': (_) => const PlayerListPage(),
         '/admin/players/create': (_) => const CreatePlayerPage(),
-        '/admin/fixtures': (_) => const MatchesPage()
+        '/admin/fixtures': (_) => const MatchesPage(),
+        '/admin/coaches': (_) => const CoachListPage()
       },
       onGenerateRoute: (settings) {
         final uri = Uri.parse(settings.name ?? '');

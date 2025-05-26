@@ -84,10 +84,14 @@ class PlayerViewSet(AdminOnlyViewSet):
         'team_id': ['exact'],
     }
 
-class ManagerViewSet(ReadOnlyViewSet):
+class ManagerViewSet(AdminOnlyViewSet):
     queryset = Manager.objects.all()
     serializer_class = ManagerSerializer
     permission_classes = [IsAdmin]
+
+class PublicManagerViewSet(ReadOnlyViewSet):
+    queryset = Manager.objects.all()
+    serializer_class = ManagerSerializer
 
 class StaffViewSet(ReadOnlyViewSet):
     queryset = Staff.objects.all()
