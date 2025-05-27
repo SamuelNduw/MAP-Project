@@ -5,6 +5,7 @@ import 'package:hockeyapp/pages/create_team_page.dart';
 import 'package:hockeyapp/pages/matches_page.dart';
 import 'package:hockeyapp/pages/team_list_page.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'pages/login_page.dart';
 import 'pages/signup_page.dart';
@@ -15,7 +16,6 @@ import 'pages/league_detail_page.dart';
 import 'pages/public_home_page.dart';
 import 'pages/player_list_page.dart';
 import 'pages/create_player_page.dart';
-// import your other admin pages (teams, players, etc.)
 
 void main() => runApp(const MyApp());
 
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         '/admin/players': (_) => const PlayerListPage(),
         '/admin/players/create': (_) => const CreatePlayerPage(),
         '/admin/fixtures': (_) => const MatchesPage(),
-        '/admin/coaches': (_) => const CoachListPage()
+        '/admin/coaches': (_) => const CoachListPage(),
       },
       onGenerateRoute: (settings) {
         final uri = Uri.parse(settings.name ?? '');

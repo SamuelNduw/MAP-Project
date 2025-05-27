@@ -70,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Image.asset('images/logo.png', width: 160, height: 160),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 "Welcome Back!",
                 style: TextStyle(
                   fontSize: 26,
@@ -145,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
                         TextButton(
                           onPressed:
                               () => Navigator.pushNamed(context, '/register'),
-                          child: const Text('Create an account', style: TextStyle(color: AppTheme.primaryColor)),
+                          child: Text('Create an account', style: TextStyle(color: AppTheme.primaryColor)),
                         ),
                       ],
                     ),

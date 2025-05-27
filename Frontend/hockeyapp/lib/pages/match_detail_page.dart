@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:hockeyapp/services/match_service.dart';
 import 'package:hockeyapp/config.dart';
+import 'package:hockeyapp/theme/app_theme.dart';
+import 'package:hockeyapp/pages/team_detail_page.dart';
 
 class MatchDetailPage extends StatefulWidget {
   final int fixtureId;
@@ -57,7 +59,24 @@ class _MatchDetailPageState extends State<MatchDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Match Details')),
+      appBar: AppBar(
+        backgroundColor: AppTheme.primaryColor,
+        leadingWidth: 140,
+        leading: Row(
+          children: [
+            const BackButton(color: Colors.white),
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Image.asset(
+                'images/logo.png',
+                width: 60,
+                height: 60,
+                fit: BoxFit.contain,
+              )
+            )
+          ],
+        ),
+      ),
       body: FutureBuilder<Match>(
         future: _futureMatch,
         builder: (ctx, snap) {
@@ -85,22 +104,60 @@ class _MatchDetailPageState extends State<MatchDetailPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(children: [
-                    Column(children: [
-                      CircleAvatar(backgroundImage: NetworkImage(m.homeLogo), radius: 24, onBackgroundImageError: (_, __) => print("image failed to load"),),
-                      const SizedBox(height: 4),
-                      Text(m.homeShortName, overflow: TextOverflow.ellipsis),
-                    ]),
+                    // HOME TEAM clickable avatar
+                    InkWell(
+                      borderRadius: BorderRadius.circular(30),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TeamDetailPage(id: m.homeTeamId),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            backgroundImage: NetworkImage(m.homeLogo),
+                            radius: 24,
+                            onBackgroundImageError: (_, __) => print("image failed to load"),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(m.homeShortName, overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
+                    ),
                     const Spacer(),
-                    Column(children: [
-                      Text(score, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                      Text(status),
-                    ]),
+                    Column(
+                      children: [
+                        Text(score, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        Text(status),
+                      ],
+                    ),
                     const Spacer(),
-                    Column(children: [
-                      CircleAvatar(backgroundImage: NetworkImage(m.awayLogo), radius: 24, onBackgroundImageError: (_, __) => print("image failed to load"),),
-                      const SizedBox(height: 4),
-                      Text(m.awayShortName, overflow: TextOverflow.ellipsis),
-                    ]),
+                    // AWAY TEAM clickable avatar
+                    InkWell(
+                      borderRadius: BorderRadius.circular(30),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TeamDetailPage(id: m.awayTeamId),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            backgroundImage: NetworkImage(m.awayLogo),
+                            radius: 24,
+                            onBackgroundImageError: (_, __) => print("image failed to load"),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(m.awayShortName, overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
+                    ),
                   ]),
                 ),
               ),

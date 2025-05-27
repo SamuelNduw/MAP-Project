@@ -6,6 +6,8 @@ import 'package:hockeyapp/config.dart';
 
 class Match {
   final int id;
+  final int homeTeamId;
+  final int awayTeamId;
   final String homeName;
   final String awayName;
   final String homeShortName;
@@ -21,6 +23,8 @@ class Match {
 
   Match({
     required this.id,
+    required this.homeTeamId,
+    required this.awayTeamId,
     required this.homeName,
     required this.awayName,
     required this.homeShortName,
@@ -40,6 +44,8 @@ class Match {
   factory Match.fromJson(Map<String, dynamic> json) {
     return Match(
       id: json['id'] as int,
+      homeTeamId: json['home_team_id'] as int,
+      awayTeamId: json['away_team_id'] as int,
       date: json['match_datetime'] as String,
       leagueName: json['league_name'] as String,
       status: json['status'] as String,

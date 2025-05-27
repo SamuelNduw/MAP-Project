@@ -53,7 +53,7 @@ class CoachService {
 
   Future<Coach> getCoach(int id) async {
     await _attachToken();
-    final resp = await _dio.get('admin/managers/$id/');
+    final resp = await _dio.get('publicmanagers/$id/');
     return Coach.fromJson(resp.data);
   }
 

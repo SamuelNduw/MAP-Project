@@ -23,6 +23,7 @@ router.register(r'simplefixtures', SimpleFixtureViewSet, basename='simplefixture
 router.register(r'publicplayers', PublicPlayerViewSet, basename='publicplayers')
 router.register(r'publicmatchevents', PublicMatchEventViewSet, basename='public-matchevents')
 router.register(r'publicmanagers', PublicManagerViewSet, basename='publicmanagers')
+router.register(r'publicleaguestandings', PublicLeagueStandingViewSet, basename='publicleaguestandings')
 
 
 

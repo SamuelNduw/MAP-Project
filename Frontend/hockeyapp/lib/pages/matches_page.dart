@@ -105,7 +105,6 @@ class _MatchesPageState extends State<MatchesPage> with SingleTickerProviderStat
       initialIndex: todayTabIndex,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Matches', style: TextStyle(color: Colors.white)),
           backgroundColor: AppTheme.primaryColor,
           leadingWidth: 140,
           leading: FutureBuilder<bool>(
@@ -133,7 +132,7 @@ class _MatchesPageState extends State<MatchesPage> with SingleTickerProviderStat
               return Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 4),
+                    padding: const EdgeInsets.only(left: 10),
                     child: Image.asset(
                         'images/logo.png',
                         width: 60,

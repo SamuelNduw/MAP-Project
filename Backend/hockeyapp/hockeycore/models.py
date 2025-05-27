@@ -150,8 +150,8 @@ class Fixture(models.Model):
     league_id = models.ForeignKey(League, on_delete=models.CASCADE)
     home_team_id = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_fixtures')
     away_team_id = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_fixtures')
-    home_team_score = models.PositiveSmallIntegerField(null=True, blank=True)
-    away_team_score = models.PositiveSmallIntegerField(null=True, blank=True)
+    home_team_score = models.PositiveSmallIntegerField(null=True, blank=True, default=0)
+    away_team_score = models.PositiveSmallIntegerField(null=True, blank=True, default=0)
     victor = models.ForeignKey(
         Team,
         on_delete=models.SET_NULL,
@@ -177,6 +177,11 @@ class Fixture(models.Model):
         return "TBD"
     
     def save(self, *args, **kwargs):
+        # Get the previous state if this is an update
+        old_instance = None
+        if self.pk:
+            old_instance = Fixture.objects.get(pk=self.pk)
+
         # Check if score changed
         score_changed = self.pk is not None and (
             Fixture.objects.filter(pk=self.pk)
@@ -191,6 +196,11 @@ class Fixture(models.Model):
             .exists()
         )
 
+        # Check if status has changed to FINISHED
+        status_changed_to_finished = (
+            old_instance and old_instance != self.status and self.status == self.Status.FINISHED
+        )
+
         # Automatically set victor when scores are updated
         if self.home_team_score is not None and self.away_team_score is not None:
             if self.home_team_score > self.away_team_score:
@@ -200,6 +210,12 @@ class Fixture(models.Model):
             else:
                 self.victor = None
         super().save(*args, **kwargs)
+
+        # Calculate league standings if:
+        # 1. The match was just marked as FINISIHED, or
+        # 2. Scores were updated on a FINSIHED match
+        if (status_changed_to_finished or (self.status == self.Status.FINISHED and score_changed)):
+            self.calculate_league_standings()
 
         # Notify group if score or status changed
         if score_changed or status_changed:
@@ -212,6 +228,108 @@ class Fixture(models.Model):
                         "score": self.score_display,
                         "status": self.status,
                     }
+                }
+            )
+
+    def calculate_league_standings(self):
+        """
+        Calculate and update league standings for all teams in this fixture's league
+        after this match is finished.
+        """
+        if self.status != self.Status.FINISHED:
+            return
+
+        league = self.league_id
+        
+        # Get all teams in this league through LeagueTeam
+        teams_in_league = LeagueTeam.objects.filter(league=league).select_related('team')
+        
+        # Create a set of team IDs for quick lookup
+        league_team_ids = {lt.team.id for lt in teams_in_league}
+        
+        # Initialize standings dictionary with all teams in the league
+        standings = {}
+        for lt in teams_in_league:
+            standings[lt.team.id] = {  # Using team ID as key for consistency
+                'team': lt.team,       # Store the team object
+                'played': 0,
+                'wins': 0,
+                'draws': 0,
+                'losses': 0,
+                'goals_for': 0,
+                'goals_against': 0,
+                'points': 0,
+            }
+
+        # Get all finished matches in this league
+        finished_matches = Fixture.objects.filter(
+            league_id=league,
+            status=self.Status.FINISHED,
+            home_team_score__isnull=False,
+            away_team_score__isnull=False
+        )
+
+        # Process all matches to calculate standings
+        for match in finished_matches:
+            home_team = match.home_team_id
+            away_team = match.away_team_id
+            home_score = match.home_team_score or 0
+            away_score = match.away_team_score or 0
+
+            # Only process matches where both teams are in the league
+            if home_team.id not in league_team_ids or away_team.id not in league_team_ids:
+                continue
+
+            # Update home team stats
+            standings[home_team.id]['played'] += 1
+            standings[home_team.id]['goals_for'] += home_score
+            standings[home_team.id]['goals_against'] += away_score
+
+            # Update away team stats
+            standings[away_team.id]['played'] += 1
+            standings[away_team.id]['goals_for'] += away_score
+            standings[away_team.id]['goals_against'] += home_score
+
+            # Update wins/draws/losses and points
+            if home_score > away_score:
+                standings[home_team.id]['wins'] += 1
+                standings[home_team.id]['points'] += 3
+                standings[away_team.id]['losses'] += 1
+            elif home_score < away_score:
+                standings[away_team.id]['wins'] += 1
+                standings[away_team.id]['points'] += 3
+                standings[home_team.id]['losses'] += 1
+            else:  # draw
+                standings[home_team.id]['draws'] += 1
+                standings[home_team.id]['points'] += 1
+                standings[away_team.id]['draws'] += 1
+                standings[away_team.id]['points'] += 1
+
+        # Convert standings to a list and sort by points, goal difference, etc.
+        sorted_standings = sorted(
+            standings.values(),  # We already have the team objects stored
+            key=lambda x: (
+                -x['points'],  # Higher points first
+                -(x['goals_for'] - x['goals_against']),  # Better GD first
+                -x['goals_for'],  # More goals for first
+                x['team'].name  # Alphabetical as tiebreaker
+            )
+        )
+
+        # Update or create LeagueStanding records
+        for position, stats in enumerate(sorted_standings, start=1):
+            LeagueStanding.objects.update_or_create(
+                league_id=league,
+                team_id=stats['team'],
+                defaults={
+                    'played': stats['played'],
+                    'wins': stats['wins'],
+                    'draws': stats['draws'],
+                    'losses': stats['losses'],
+                    'goals_for': stats['goals_for'],
+                    'goals_against': stats['goals_against'],
+                    'points': stats['points'],
+                    'position': position,
                 }
             )
 

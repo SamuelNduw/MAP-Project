@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hockeyapp/pages/public_player_detail_page.dart';
 import 'package:hockeyapp/services/player_service.dart';
+import 'package:hockeyapp/theme/app_theme.dart';
 
 class PublicPlayerListPage extends StatefulWidget {
   const PublicPlayerListPage({super.key});
@@ -57,7 +58,23 @@ class _PublicPlayerListPageState extends State<PublicPlayerListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Players')),
+      appBar: AppBar(
+        backgroundColor: AppTheme.primaryColor,
+        leadingWidth: 140,
+        leading: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Image.asset(
+                'images/logo.png',
+                width: 60,
+                height: 60,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ],
+        ),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(

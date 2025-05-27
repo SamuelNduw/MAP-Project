@@ -337,6 +337,14 @@ class PublicPlayerViewSet(ReadOnlyViewSet):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+class PublicLeagueStandingViewSet(ReadOnlyViewSet):
+    queryset = LeagueStanding.objects.select_related('team_id', 'league_id').all()
+    serializer_class = LeagueStandingSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['league_id']
+    ordering_fields = ['position']
+    ordering = ['position']
 
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAdmin])

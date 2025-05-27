@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, Team, Fixture, League, Player, Manager, Staff, LeagueTeam, MatchEvent
+from .models import User, Team, Fixture, League, Player, Manager, Staff, LeagueTeam, MatchEvent, LeagueStanding
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -77,7 +77,6 @@ class PlayerSerializer(serializers.ModelSerializer):
             'weight_kg': {'required': False},
             'photo': {'required': False},
         }
-
 
 class StaffSerializer(serializers.ModelSerializer):
     class Meta:
@@ -179,6 +178,8 @@ class PublicFixtureSerializer(serializers.ModelSerializer):
         return MatchEventSerializer(events, many=True).data
     
 class SimpleFixtureSerializer(serializers.ModelSerializer):
+    home_team_id = serializers.IntegerField(source='home_team_id.id')
+    away_team_id = serializers.IntegerField(source='away_team_id.id')
     home_team_name = serializers.CharField(source='home_team_id.name')
     away_team_name = serializers.CharField(source='away_team_id.name')
     home_team_logo_url = serializers.URLField(source='home_team_id.logo_url')
@@ -191,6 +192,7 @@ class SimpleFixtureSerializer(serializers.ModelSerializer):
         model = Fixture
         fields = [
             'id', 'match_datetime', 'venue', 'status',
+            'home_team_id', 'away_team_id',
             'home_team_name', 'away_team_name', 'league_name',
             'home_team_score', 'away_team_score', 'home_team_logo_url', 'away_team_logo_url',
             'home_team_short_name', 'away_team_short_name'
@@ -301,6 +303,18 @@ class MatchEventSerializer2(serializers.ModelSerializer):
                 raise serializers.ValidationError("`sub_in` and `sub_out` are required for SUBSTITUTION")
         return data
 
+class LeagueStandingSerializer(serializers.ModelSerializer):
+    team_name = serializers.CharField(source='team_id.name', read_only=True)
+    team_short_name = serializers.CharField(source='team_id.short_name', read_only=True)
+    team_logo_url = serializers.CharField(source='team_id.logo_url', read_only=True)
+    league_id = serializers.IntegerField(source='league_id.id')
+    class Meta:
+        model = LeagueStanding
+        fields = [
+            'position', 'team_id', 'team_name', 'team_short_name', 'team_logo_url',
+            'played', 'wins', 'draws', 'losses',
+            'goals_for', 'goals_against', 'points', 'league_id'
+        ]
 
 class PublicTeamSerializer(serializers.ModelSerializer):
     league_name = serializers.CharField(source='league_id.name', read_only=True)

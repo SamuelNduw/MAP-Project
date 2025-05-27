@@ -26,28 +26,9 @@ class Team {
   );
 }
 
-// class Coach {
-//   final int id;
-//   final String firstName;
-//   final String lastName;
-
-//   Coach({
-//     required this.id,
-//     required this.firstName,
-//     required this.lastName,
-//   });
-
-//   factory Coach.fromJson(Map<String, dynamic> j) => Coach(
-//         id: j['id'],
-//         firstName: j['first_name'],
-//         lastName: j['last_name'],
-//       );
-// }
-
-
 class TeamService {
   final _storage = const FlutterSecureStorage();
-  final _dio = Dio(BaseOptions(baseUrl: '${apiBaseUrl}admin/'));
+  final _dio = Dio(BaseOptions(baseUrl: '${apiBaseUrl}'));
 
   Future<void> _attachToken() async {
     final token = await _storage.read(key: 'accessToken');
@@ -63,7 +44,7 @@ class TeamService {
     required int foundedYear,
   }) async {
     await _attachToken();
-    final resp = await _dio.post('teams/', data: {
+    final resp = await _dio.post('admin/teams/', data: {
       'name': name,
       'short_name': shortName,
       'logo_url': logoUrl,
@@ -75,7 +56,7 @@ class TeamService {
 
   Future<List<Team>> listTeams() async {
     await _attachToken();
-    final resp = await _dio.get('teams/');
+    final resp = await _dio.get('publicteams/');
     
     // SAFER: assume response is a List
     final data = resp.data;
@@ -89,7 +70,7 @@ class TeamService {
 
   Future<Team> getTeam(int id) async {
     await _attachToken();
-    final resp = await _dio.get('teams/$id/');
+    final resp = await _dio.get('publicteams/$id/');
     return Team.fromJson(resp.data);
   }
 
@@ -97,7 +78,7 @@ class TeamService {
   Future<bool> updateTeam(int id, Map<String, dynamic> data) async {
     try {
       await _attachToken();  // include this if you need auth
-      final response = await _dio.put('/teams/$id/', data: data);
+      final response = await _dio.put('admin/teams/$id/', data: data);
       // Some APIs return 200, some 204 for successful updates
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
@@ -113,7 +94,7 @@ class TeamService {
       'manager': coachId,
     };
     try {
-      final response = await _dio.patch('/teams/$teamId/', data: data);
+      final response = await _dio.patch('admin/teams/$teamId/', data: data);
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
       print('Error assigning coach: $e');

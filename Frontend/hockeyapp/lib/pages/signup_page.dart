@@ -56,7 +56,7 @@ class _SignupPageState extends State<SignupPage> {
             children: [
               Image.asset('images/logo.png', width: 160, height: 160),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 "Create Account",
                 style: TextStyle(
                   fontSize: 26,
@@ -137,7 +137,7 @@ class _SignupPageState extends State<SignupPage> {
                               ),
                         TextButton(
                           onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                          child: const Text('Already have an account? Log in',
+                          child: Text('Already have an account? Log in',
                               style: TextStyle(color: AppTheme.primaryColor)),
                         ),
                       ],

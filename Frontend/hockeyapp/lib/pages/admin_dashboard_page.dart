@@ -105,7 +105,6 @@ class DashboardTab extends StatelessWidget {
             _buildTile(context, 'Teams', Icons.sports_hockey, '/admin/teams'),
             _buildTile(context, 'Players', Icons.group, '/admin/players'),
             _buildTile(context, 'Coaches', Icons.person, '/admin/coaches'),
-            // _buildTile(context, 'Staff', Icons.badge, '/admin/staff'),
             _buildTile(context, 'Fixtures', Icons.calendar_month, '/admin/fixtures'),
           ],
         )
@@ -210,7 +209,7 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
               children: [
                 const Icon(Icons.admin_panel_settings, size: 64, color: Colors.blue),
                 const SizedBox(height: 16),
-                const Text("Admin", style: AppTheme.titleTextStyle),
+                Text("Admin", style: AppTheme.titleTextStyle),
                 const SizedBox(height: 8),
                 Text(
                   _fullName ?? "loading...",
